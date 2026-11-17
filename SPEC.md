@@ -1278,7 +1278,7 @@ NOVA has three versioned layers, which evolve independently:
 
 ## 14. Reference implementation
 
-The Rust reference implementation lives at <https://github.com/sunsided/nova> (moving to the `novafile` organization). It consists of a Cargo workspace whose crates are published as `novafile-*`; the command-line tool is `nvf` and the language server `nvf-lsp`. Editor support lives in <https://github.com/novafile/vscode-novafile> and <https://github.com/novafile/tree-sitter-nova>. The conformance suite in this repository (`conformance/`) is the cross-implementation test of the specification.
+The Rust reference implementation lives at <https://github.com/novafile/nova>. It consists of a Cargo workspace whose crates are published as `novafile-*`; the command-line tool is `nvf` and the language server `nvf-lsp`. Editor support lives in <https://github.com/novafile/vscode-novafile> and <https://github.com/novafile/tree-sitter-nova>. The conformance suite in this repository (`conformance/`) is the cross-implementation test of the specification.
 
 | Crate | Implements |
 | --- | --- |

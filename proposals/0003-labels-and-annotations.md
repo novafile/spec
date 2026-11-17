@@ -537,4 +537,4 @@ Contents, in brief:
 - ○ Git, `git-notes(1)`. https://git-scm.com/docs/git-notes
 - ○ ID3v2.4.0 frames (`TXXX`). https://id3.org/id3v2.4.0-frames
 - ○ CVE-2021-25742 (ingress-nginx custom snippets via annotations). https://github.com/kubernetes/ingress-nginx/issues/7837
-- NOVA SPEC.md §1, §2.10–2.13, §3, §4.3, §4.12, §6.1–6.7, §7.1–7.6, §8.2, §9, §11.1. Reference implementation (https://github.com/sunsided/nova): `crates/novafile-schema/src/resolve.rs` (map-from-record resolution), `crates/novafile-serde/src/lib.rs` (string-keyed maps serialise as records).
+- NOVA SPEC.md §1, §2.10–2.13, §3, §4.3, §4.12, §6.1–6.7, §7.1–7.6, §8.2, §9, §11.1. Reference implementation (https://github.com/novafile/nova): `crates/novafile-schema/src/resolve.rs` (map-from-record resolution), `crates/novafile-serde/src/lib.rs` (string-keyed maps serialise as records).

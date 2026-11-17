@@ -16,7 +16,7 @@ This repository is the language-neutral home of the format:
 
 | Project | Language | Contents |
 | --- | --- | --- |
-| [sunsided/nova](https://github.com/sunsided/nova) (moving to this organization) | Rust | Reference implementation: crates `novafile-*` (umbrella crate `novafile`), CLI `nvf`, language server `nvf-lsp` |
+| [novafile/nova](https://github.com/novafile/nova) | Rust | Reference implementation: crates `novafile-*` (umbrella crate `novafile`), CLI `nvf`, language server `nvf-lsp` |
 | [novafile/vscode-novafile](https://github.com/novafile/vscode-novafile) | TypeScript | VS Code extension: syntax highlighting and the language server client |
 | [novafile/tree-sitter-nova](https://github.com/novafile/tree-sitter-nova) | tree-sitter | Grammar for Helix, Neovim, Zed and others |
 
