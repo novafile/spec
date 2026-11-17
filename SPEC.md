@@ -1,7 +1,7 @@
-# NOVA — Normalized Object and Value Architecture
+# NOVA — Notation for Objects, Values & Agents
 
 **Specification, version 0.1 (draft)**
-Status: working draft accompanied by a reference implementation in Rust (this repository).
+Status: working draft, accompanied by a Rust reference implementation at <https://github.com/novafile/nova>.
 
 ---
 
@@ -41,7 +41,13 @@ Grammar fragments use an EBNF variant: `"x"` is a literal, `[a]` is optional, `a
 
 ## 1. Overview and design principles
 
-NOVA is **one precise semantic model with several interchangeable representations**, each optimized for a different consumer:
+NOVA, the **Notation for Objects, Values & Agents**, is **one precise semantic model with several interchangeable representations**, each optimized for a different consumer. The name states its scope:
+
+- *Objects:* structured documents that people write and read.
+- *Values:* a typed model with exact equality and canonical revisions, which machines exchange.
+- *Agents:* projections, conditional patches and provenance, so that automated editors read and change parts of a document safely.
+
+The representations, by consumer:
 
 | Consumer | Representation | Optimized for |
 | --- | --- | --- |

@@ -1,6 +1,6 @@
 # NOVA specification
 
-**NOVA — Normalized Object and Value Architecture** is one precise semantic model with several interchangeable representations: human text, compact text for LLMs (with tables), a canonical binary encoding, conditional patches and queries for agents, schemas with SemVer-checked evolution, and a total, value-level template language.
+**NOVA — Notation for Objects, Values & Agents** — is one precise semantic model with several interchangeable representations: human text, compact text for LLMs (with tables), a canonical binary encoding, conditional patches and queries for agents, schemas with SemVer-checked evolution, and a total, value-level template language.
 
 This repository is the language-neutral home of the format:
 
