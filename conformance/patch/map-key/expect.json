@@ -1,0 +1,5 @@
+{
+  "binary": "0d01026d0e020304060674776f0306060a7468726565",
+  "canonical": "m: @map{2 => two, 3 => three}\n",
+  "revision": "sha256:3bd7fc8cb061546fc911476c0d46e41718b238be535c8f93d41c853f24d10501"
+}

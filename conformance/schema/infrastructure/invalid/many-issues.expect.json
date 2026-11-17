@@ -1,0 +1,21 @@
+{
+  "error": true,
+  "issue_paths": [
+    "deployed_at",
+    "status",
+    "services[0].port",
+    "services[0].replicas",
+    "services[1].image",
+    "services[1].extra",
+    "services[1]"
+  ],
+  "messages": [
+    "string is not a valid timestamp: invalid RFC 3339 timestamp \"yesterday\"",
+    "unknown variant \"exploded\"; expected one of active | draining | failed",
+    "0 is outside @range(1..65535)",
+    "500 is outside @range(0..100)",
+    "length 0 is outside @len(1..)",
+    "unknown field",
+    "duplicate @key (id)"
+  ]
+}

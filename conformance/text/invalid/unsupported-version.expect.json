@@ -1,0 +1,6 @@
+{
+  "col": 1,
+  "error": true,
+  "line": 1,
+  "message": "this document requires NOVA 9.0, but this implementation supports NOVA 0.1"
+}

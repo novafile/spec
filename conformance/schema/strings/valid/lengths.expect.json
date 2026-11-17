@@ -1,0 +1,5 @@
+{
+  "binary": "0d0502620608616263640267060665cc81086f70656e0d020a65787472610602780a6b6e6f776e030202730610c3a4c3b6c3bcc39f027506046162",
+  "canonical": "b: abcd\ng: é\nopen:\n  extra: x\n  known: 1\ns: äöüß\nu: ab\n",
+  "revision": "sha256:b680fdfcbe2e6c469b021d0b59d63f928e6951d0c10ab5251fc65748a1b6cb89"
+}

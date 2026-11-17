@@ -1,0 +1,8 @@
+a: hello world
+b: yes
+c: NO
+d: 1.2.3
+e: 08080
+f: 2026-11-17T16:00:00Z
+g: ghcr.io/x/y:v2
+h: url://x?y=1#frag

@@ -1,0 +1,5 @@
+b: abcd
+g: "e\u0301"
+u: ab
+s: äöüß
+open: {known: 1, extra: x}

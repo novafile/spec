@@ -1,0 +1,17 @@
+environment
+services[0].port
+services[-1].id
+services[id=api].{replicas,port}
+services[*].id
+services[*].{id,replicas}
+services[?replicas>3].id
+services[?replicas>=3][?port<5000].id
+services[?tags].id
+services[?!tags].id
+services[?id in [auth, x]].id
+services[?replicas=3.0].id
+services[id=api].tags[edge]
+services[id=nope]
+services[enabled=true]
+environment.x
+services[9]

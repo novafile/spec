@@ -1,0 +1,6 @@
+{
+  "col": 4,
+  "error": true,
+  "line": 1,
+  "message": "invalid ISO 8601 duration \"P1M\": years and months are calendar-dependent and not supported; use days (D) or weeks (W)"
+}

@@ -1,0 +1,9 @@
+@schema numbers@1.0.0
+@root R
+record R:
+  f: float @range(0..0.1)
+  q?: decimal @range(1/3..)
+  r?: rational
+  i?: u8
+  d?: decimal
+  big?: int

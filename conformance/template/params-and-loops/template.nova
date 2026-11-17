@@ -1,0 +1,22 @@
+@template
+@param env: string
+@param replicas: u16 @range(1..50) = 2
+@param services: list<string>
+@param metrics: bool = false
+@let defaults:
+  enabled: true
+  replicas: $replicas
+environment: $env
+region: "${env}-eu"
+services:
+  @for i, name in $services:
+    - ...$defaults
+      id: $name
+      index: $i
+  @if $metrics and $env == production:
+    - id: metrics
+  @else:
+    - id: noop
+labels:
+  @for name in $services:
+    "app-${name}": $name

@@ -1,0 +1,2 @@
+@patch
+= services[enabled=true].replicas: 1

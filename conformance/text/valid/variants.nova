@@ -1,0 +1,6 @@
+unit: !active
+payload: !failed("disk full")
+record_payload: !scaled({from: 3, to: 5})
+block_payload: !moved
+  region: eu
+  zone: 2

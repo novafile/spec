@@ -1,0 +1,4 @@
+@nova 0.1
+@schema infrastructure@1.0.0
+@x-custom anything
+a: 1

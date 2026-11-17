@@ -1,0 +1,5 @@
+{
+  "binary": "0d0402610880e8e3af0d0002620880e8e3af0d80e59a77026308ffdb8ff9ce0300026408fee988de0c959aef3a",
+  "canonical": "a: @timestamp(\"2026-11-17T16:00:00Z\")\nb: @timestamp(\"2026-11-17T16:00:00.25Z\")\nc: @timestamp(\"0001-01-01T00:00:00Z\")\nd: @timestamp(\"2024-02-29T23:59:59.123456789Z\")\n",
+  "revision": "sha256:2990990e67a4d12e9f0b90ecd146c5c387e505e566df928da0824af43fb35ffa"
+}

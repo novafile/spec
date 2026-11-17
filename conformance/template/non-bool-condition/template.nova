@@ -1,0 +1,5 @@
+@template
+@let a = 1
+x:
+  @if $a:
+    y: 1

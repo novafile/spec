@@ -1,0 +1,7 @@
+a: @duration("1h30m")
+b: @duration("90m")
+c: @duration("0s")
+d: @duration("-2d3h")
+e: @duration("PT1H30M")
+f: @duration("P1W")
+g: @duration("PT1,5S")

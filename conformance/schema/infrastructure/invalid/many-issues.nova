@@ -1,0 +1,14 @@
+environment: prod
+region: x
+deployed_at: yesterday
+status: exploded
+services:
+  - id: a
+    image: i
+    port: 0
+    replicas: 500
+  - id: a
+    image: ""
+    port: 80
+    replicas: 1
+    extra: 1

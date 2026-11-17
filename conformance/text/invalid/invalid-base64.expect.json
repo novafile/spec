@@ -1,0 +1,6 @@
+{
+  "col": 4,
+  "error": true,
+  "line": 1,
+  "message": "invalid base64 in @bytes: Invalid symbol 33, offset 0."
+}

@@ -1,0 +1,5 @@
+# header
+a: 1 # trailing
+# between
+b: [1, # inside
+  2]

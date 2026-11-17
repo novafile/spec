@@ -1,0 +1,4 @@
+@template
+@let base = {a: 1, b: 2}
+x: {...$base, b: 3}
+y: {b: 3, ...$base}

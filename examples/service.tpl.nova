@@ -1,0 +1,24 @@
+@template
+@param env: string
+@param services: list<string>
+@param replicas: u16 @range(1..50) = 2
+@param metrics: bool = false
+@import "base.nova" as base
+@let defaults:
+  enabled: true
+  replicas: $replicas
+
+environment: $env
+region: $base.region
+deployed_at: $base.deployed_at
+services:
+  @for name in $services:
+    - ...$defaults
+      id: $name
+      image: "${base.registry}/${name}:v2"
+      port: 8080
+  @if $metrics and $env == production:
+    - id: metrics
+      image: "${base.registry}/metrics:v1"
+      port: 9090
+      replicas: 1

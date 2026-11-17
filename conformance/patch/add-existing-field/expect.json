@@ -1,0 +1,5 @@
+{
+  "error": "op-failed",
+  "message": "op 1 (line 2) `+ region: x`: region already exists; use `=` to replace it",
+  "op": 1
+}

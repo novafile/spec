@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "conditions must be bool, found int (compare explicitly, e.g. `$x != null`)"
+}

@@ -1,0 +1,2 @@
+@patch
+services[id=api].replicas: 4 -> 8

@@ -1,0 +1,5 @@
+{
+  "binary": "0d0102740a030d01026103020d010262000d0202610608782c207902620304",
+  "canonical": "t:\n  - a: 1\n  - b: null\n  - a: x, y\n    b: 2\n",
+  "revision": "sha256:944f45233ee171a65fb9be6c56abb781da974b96e976e88ca81606616dea32c3"
+}

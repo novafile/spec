@@ -1,0 +1,6 @@
+{
+  "col": 4,
+  "error": true,
+  "line": 1,
+  "message": "`(x)` is not a tuple; write `(x,)` for a 1-tuple"
+}

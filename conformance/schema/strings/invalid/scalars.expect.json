@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "s"
+  ],
+  "messages": [
+    "length 5 is outside @len(..4)"
+  ]
+}

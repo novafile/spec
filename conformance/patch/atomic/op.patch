@@ -1,0 +1,3 @@
+@patch
+= region: changed
+services[id=auth].replicas: 9 -> 1

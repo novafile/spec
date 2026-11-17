@@ -1,0 +1,6 @@
+{
+  "col": 4,
+  "error": true,
+  "line": 2,
+  "message": "indentation must be exactly 2 spaces (2 deeper than the parent)"
+}

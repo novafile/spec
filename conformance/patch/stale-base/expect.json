@@ -1,0 +1,4 @@
+{
+  "error": "stale-base",
+  "message": "conflict: patch expects base sha256:0000000000000000 but the document is at sha256:91cf16db2f4a403ed7a586e82fc2618093f7c1d87fc0183e54ea1c9b936bd65b"
+}

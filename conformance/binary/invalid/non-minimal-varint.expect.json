@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "byte 3: non-minimal varint"
+}

@@ -1,0 +1,6 @@
+{
+  "col": 1,
+  "error": true,
+  "line": 1,
+  "message": "unknown directive @frobnicate"
+}

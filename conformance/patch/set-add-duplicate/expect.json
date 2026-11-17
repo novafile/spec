@@ -1,0 +1,5 @@
+{
+  "error": "op-failed",
+  "message": "op 1 (line 2) `+ s: a`: set already contains a",
+  "op": 1
+}

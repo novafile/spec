@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "f"
+  ],
+  "messages": [
+    "0.1 is outside @range(0..0.1)"
+  ]
+}

@@ -1,0 +1,5 @@
+@template
+@param x: string
+a: "${x}/$${literal}"
+b: |
+  value=${x}

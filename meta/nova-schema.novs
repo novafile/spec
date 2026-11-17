@@ -1,0 +1,62 @@
+# The meta-schema: the shape of schema descriptors (spec §6.8).
+# A schema's descriptor is ordinary NOVA data; this schema validates it,
+# including its own descriptor.
+@schema nova-schema@0.1.0
+@root Schema
+
+record Schema:
+  name?: string @id(1)
+  version?: string @id(2)
+  root?: string @id(3)
+  defs: list<Def> @id(4)
+
+# Exactly one of `record`, `enum` and `alias` is present.
+record Def:
+  name: string @key @id(1)
+  record?: RecordDef @id(2)
+  enum?: list<VariantDef> @id(3)
+  alias?: Type @id(4)
+
+record RecordDef:
+  open: bool @id(1) = false
+  fields: list<FieldDef> @id(2)
+
+record FieldDef:
+  name: string @key @id(1)
+  type: Type @id(2)
+  optional: bool @id(3) = false
+  default?: any @id(4)
+  key: bool @id(5) = false
+  id?: u32 @id(6)
+  deprecated: bool @id(7) = false
+
+record VariantDef:
+  name: string @key @id(1)
+  payload?: Type @id(2)
+
+enum Kind = any | null | bool | int | i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | float | decimal | rational | string | bytes | timestamp | duration | list | set | map | tuple | named
+
+# `ref` names the definition for `named`; `item` is the element type of
+# lists and sets; `key`/`value` describe maps; `items` the tuple elements.
+record Type:
+  kind: Kind @id(1)
+  ref?: string @id(2)
+  item?: Type @id(3)
+  key?: Type @id(4)
+  value?: Type @id(5)
+  items?: list<Type> @id(6)
+  nullable: bool @id(7) = false
+  range?: Range @id(8)
+  len?: Len @id(9)
+
+# Bounds are exact numbers: int, decimal or rational.
+record Range:
+  min?: any @id(1)
+  max?: any @id(2)
+
+enum LenUnit = scalars | utf8 | utf16 | graphemes
+
+record Len:
+  min?: u64 @id(1)
+  max?: u64 @id(2)
+  unit: LenUnit @id(3) = !scalars

@@ -1,0 +1,10 @@
+environment: p
+region: r
+deployed_at: @timestamp("2026-11-17T16:00:00Z")
+status: !failed(oom)
+services:
+  - id: a
+    image: i
+    port: 1
+    replicas: 0
+    tags: [x, y]

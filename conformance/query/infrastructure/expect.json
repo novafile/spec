@@ -1,0 +1,100 @@
+[
+  {
+    "binary": "061470726f64756374696f6e",
+    "canonical": "production\n",
+    "query": "environment",
+    "revision": "sha256:d411ac975a1c01b93f3f50c3fc451ab14818a8ec30ba5474e6eb0db672f5edb2"
+  },
+  {
+    "binary": "03a07e",
+    "canonical": "8080\n",
+    "query": "services[0].port",
+    "revision": "sha256:e1565ab61b5cff3b52f5ce3850749f767695259556f6a23b9cf2c66690fa8047"
+  },
+  {
+    "binary": "0606617069",
+    "canonical": "api\n",
+    "query": "services[-1].id",
+    "revision": "sha256:e53121153797c723be2d6e172787ecfa178bfe1b01c27e90e532c87ba2e95a08"
+  },
+  {
+    "binary": "0d0208706f727403f02e107265706c69636173030a",
+    "canonical": "port: 3000\nreplicas: 5\n",
+    "query": "services[id=api].{replicas,port}",
+    "revision": "sha256:eeb1d7d4cd0c5307dd234cb1fcaa702df007e72100e29c00f7d301f6414a328f"
+  },
+  {
+    "binary": "0a020608617574680606617069",
+    "canonical": "- auth\n- api\n",
+    "query": "services[*].id",
+    "revision": "sha256:dce72dc0acc69e2be400b5223d8b0f212bf8f910ce114ba2e9ee4d08b6eec9ad"
+  },
+  {
+    "binary": "0a020d02046964060861757468107265706c6963617303060d020469640606617069107265706c69636173030a",
+    "canonical": "- id: auth\n  replicas: 3\n- id: api\n  replicas: 5\n",
+    "query": "services[*].{id,replicas}",
+    "revision": "sha256:223154ec056b3d38932e477436e130494e2bfadbe8d5464303bd249786384edd"
+  },
+  {
+    "binary": "0a010606617069",
+    "canonical": "- api\n",
+    "query": "services[?replicas>3].id",
+    "revision": "sha256:eb2018d63644fb20ef9198115cf6e52c83bfee448f0ada22591f710affc63789"
+  },
+  {
+    "binary": "0a010606617069",
+    "canonical": "- api\n",
+    "query": "services[?replicas>=3][?port<5000].id",
+    "revision": "sha256:eb2018d63644fb20ef9198115cf6e52c83bfee448f0ada22591f710affc63789"
+  },
+  {
+    "binary": "0a010606617069",
+    "canonical": "- api\n",
+    "query": "services[?tags].id",
+    "revision": "sha256:eb2018d63644fb20ef9198115cf6e52c83bfee448f0ada22591f710affc63789"
+  },
+  {
+    "binary": "0a01060861757468",
+    "canonical": "- auth\n",
+    "query": "services[?!tags].id",
+    "revision": "sha256:2e7784e7ab0017c5d8e0a59427bda0de58fcf169e3e532e10af09e6f39c8f543"
+  },
+  {
+    "binary": "0a01060861757468",
+    "canonical": "- auth\n",
+    "query": "services[?id in [auth, x]].id",
+    "revision": "sha256:2e7784e7ab0017c5d8e0a59427bda0de58fcf169e3e532e10af09e6f39c8f543"
+  },
+  {
+    "binary": "0a01060861757468",
+    "canonical": "- auth\n",
+    "query": "services[?replicas=3.0].id",
+    "revision": "sha256:2e7784e7ab0017c5d8e0a59427bda0de58fcf169e3e532e10af09e6f39c8f543"
+  },
+  {
+    "binary": "060865646765",
+    "canonical": "edge\n",
+    "query": "services[id=api].tags[edge]",
+    "revision": "sha256:58e86917d5a09c9092e520abe6cd8c6d941d53a5da5f5b57ca502ffa063fa1c4"
+  },
+  {
+    "error": "not-found",
+    "message": "path services[id=nope] not found",
+    "query": "services[id=nope]"
+  },
+  {
+    "error": "ambiguous",
+    "message": "selector services[enabled=true] matches 2 elements; expected exactly one",
+    "query": "services[enabled=true]"
+  },
+  {
+    "error": "type",
+    "message": "at environment: expected record, found string",
+    "query": "environment.x"
+  },
+  {
+    "error": "not-found",
+    "message": "path services[9] not found",
+    "query": "services[9]"
+  }
+]

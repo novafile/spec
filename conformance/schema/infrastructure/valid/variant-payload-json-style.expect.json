@@ -1,0 +1,5 @@
+{
+  "binary": "0d05166465706c6f7965645f61740880e8e3af0d0016656e7669726f6e6d656e740602700c726567696f6e0602721073657276696365730a000c737461747573100c6661696c656406066f6f6d",
+  "canonical": "deployed_at: @timestamp(\"2026-11-17T16:00:00Z\")\nenvironment: p\nregion: r\nservices: []\nstatus: !failed(oom)\n",
+  "revision": "sha256:4e2c8bcf75d091f642ff1049563c538ec06d9cecfeacbff4c28d1d940c3dc90c"
+}

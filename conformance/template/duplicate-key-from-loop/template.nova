@@ -1,0 +1,5 @@
+@template
+@let k = [a, a]
+x:
+  @for n in $k:
+    "${n}": 1

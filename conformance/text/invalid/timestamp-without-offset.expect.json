@@ -1,0 +1,6 @@
+{
+  "col": 4,
+  "error": true,
+  "line": 1,
+  "message": "invalid RFC 3339 timestamp \"2026-11-17T16:00:00\""
+}

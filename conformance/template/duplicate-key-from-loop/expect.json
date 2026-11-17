@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "duplicate key \"a\" produced by @for"
+}

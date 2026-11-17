@@ -1,0 +1,5 @@
+{
+  "error": "op-failed",
+  "message": "op 1 (line 2) `- t[0]`: tuples have a fixed length; elements cannot be removed",
+  "op": 1
+}

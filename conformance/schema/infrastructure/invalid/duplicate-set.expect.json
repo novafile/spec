@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "services[0].tags"
+  ],
+  "messages": [
+    "duplicate set element"
+  ]
+}

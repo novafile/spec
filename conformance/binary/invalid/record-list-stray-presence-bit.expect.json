@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "byte 7: unused record-list presence bits must be zero"
+}

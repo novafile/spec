@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "byte 0: duplicate record-list field \"a\""
+}

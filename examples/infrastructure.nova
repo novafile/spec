@@ -1,0 +1,20 @@
+# NOVA human syntax
+@schema infrastructure@1.0.0
+
+environment: production
+region: eu-central-1
+deployed_at: 2026-11-17T16:00:00Z   # a string until the schema resolves it
+
+services:
+  - id: auth
+    image: ghcr.io/example/auth:v2
+    port: 8080
+    replicas: 3
+    enabled: true
+
+  - id: api
+    image: ghcr.io/example/api:v5
+    port: 3000
+    replicas: 5
+    enabled: true
+    tags: [public, edge]

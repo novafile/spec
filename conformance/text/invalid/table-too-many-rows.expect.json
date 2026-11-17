@@ -1,0 +1,6 @@
+{
+  "col": 1,
+  "error": true,
+  "line": 3,
+  "message": "table declares 1 rows but more follow"
+}

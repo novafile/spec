@@ -1,0 +1,3 @@
+env: production
+services: [auth, api]
+metrics: true

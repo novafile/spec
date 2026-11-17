@@ -1,0 +1,4 @@
+# Shared settings imported by service.tpl.nova
+registry: ghcr.io/example
+region: eu-central-1
+deployed_at: 2026-11-17T16:00:00Z

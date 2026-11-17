@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "g"
+  ],
+  "messages": [
+    "length 2 is outside @len(1..1, graphemes)"
+  ]
+}

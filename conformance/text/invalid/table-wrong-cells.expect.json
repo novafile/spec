@@ -1,0 +1,6 @@
+{
+  "col": 1,
+  "error": true,
+  "line": 3,
+  "message": "table row has 3 cells; the header declares 2"
+}

@@ -1,0 +1,5 @@
+{
+  "error": "op-failed",
+  "message": "op 1 (line 2) `- nope`: path nope not found",
+  "op": 1
+}

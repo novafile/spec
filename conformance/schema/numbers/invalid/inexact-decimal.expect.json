@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "d"
+  ],
+  "messages": [
+    "expected decimal, found rational"
+  ]
+}

@@ -1,0 +1,8 @@
+@patch
+= region: eu-west-1
++ owner: platform
++ services: {id: metrics, image: m, port: 9090, replicas: 1}
+- services[id=auth]
++ services[id=api].tags: canary
+- services[id=api].tags[edge]
+? environment: production

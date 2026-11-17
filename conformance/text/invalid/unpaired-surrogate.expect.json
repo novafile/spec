@@ -1,0 +1,6 @@
+{
+  "col": 11,
+  "error": true,
+  "line": 1,
+  "message": "unpaired surrogate in \\u escape"
+}

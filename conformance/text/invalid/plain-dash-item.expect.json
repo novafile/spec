@@ -1,0 +1,6 @@
+{
+  "col": 4,
+  "error": true,
+  "line": 1,
+  "message": "`- ` starts a list item, which must be on its own line; quote the string"
+}

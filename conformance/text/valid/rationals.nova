@@ -1,0 +1,6 @@
+a: 22/7
+b: 2/4
+c: -3/6
+d: 0/5
+e: @rational("6/3")
+not_rational: 1/0

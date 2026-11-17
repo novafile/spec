@@ -1,0 +1,5 @@
+{
+  "binary": "0d0702610980c0a791a9ba0202620980c0a791a9ba0202630900026409ffffbeccf6be5302650980c0a791a9ba020266098080c892ff83930202670980bcc1960b",
+  "canonical": "a: @duration(\"1h30m\")\nb: @duration(\"1h30m\")\nc: @duration(\"0s\")\nd: @duration(\"-2d3h\")\ne: @duration(\"1h30m\")\nf: @duration(\"7d\")\ng: @duration(\"1.5s\")\n",
+  "revision": "sha256:db23cb871df1dd5de823274a5782180a5118d41e264a732b6ebde0db100edca9"
+}

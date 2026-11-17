@@ -1,0 +1,26 @@
+# Schema for the infrastructure examples (spec §6).
+@schema infrastructure@1.0.1
+@root Infrastructure
+
+type Port = u16 @range(1..65535)
+
+record Service:
+  id: string @key @id(1)
+  image: string @len(1..) @id(2)
+  port: Port @id(3)
+  replicas: u16 @range(0..100) @id(4)
+  enabled: bool @id(5) = true
+  tags?: set<string> @id(6)
+  owner?: string @id(7)
+
+enum Status:
+  active
+  draining
+  failed(string)
+
+record Infrastructure:
+  environment: string @id(1)
+  region: string @id(2)
+  deployed_at: timestamp @id(3)
+  status: Status @id(4) = !active
+  services: Service[] @id(5)

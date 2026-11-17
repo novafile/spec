@@ -1,0 +1,10 @@
+@schema strings@1.0.0
+@root R
+record R:
+  b: string @len(..4, utf8)
+  g?: string @len(1..1, graphemes)
+  u?: string @len(..2, utf16)
+  s?: string @len(..4)
+  open?: Bag
+record Bag @open:
+  known?: int

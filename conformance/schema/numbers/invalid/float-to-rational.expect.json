@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "r"
+  ],
+  "messages": [
+    "expected rational, found float"
+  ]
+}

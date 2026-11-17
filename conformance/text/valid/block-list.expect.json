@@ -1,0 +1,5 @@
+{
+  "binary": "0d010a6974656d730a0406066f6e6503040a02030603080a01060c6e6573746564",
+  "canonical": "items:\n  - one\n  - 2\n  - [3, 4]\n  - [nested]\n",
+  "revision": "sha256:bd47372ee327da4d55ae064ea1d0cc42f0964651ca3aa0e7b6c047209359a021"
+}

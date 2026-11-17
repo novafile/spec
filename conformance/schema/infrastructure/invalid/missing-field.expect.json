@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "region"
+  ],
+  "messages": [
+    "missing required field"
+  ]
+}

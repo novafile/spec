@@ -1,0 +1,6 @@
+{
+  "col": 6,
+  "error": true,
+  "line": 1,
+  "message": "control character in quoted string; use an escape such as \\n"
+}

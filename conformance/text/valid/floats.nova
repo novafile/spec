@@ -1,0 +1,8 @@
+a: 1.5
+b: -0.0
+c: 1e3
+d: 2.5E-3
+e: 0.1
+f: @float("nan")
+g: @float("inf")
+h: @float("-inf")

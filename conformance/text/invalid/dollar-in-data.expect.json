@@ -1,0 +1,6 @@
+{
+  "col": 4,
+  "error": true,
+  "line": 1,
+  "message": "`$` is reserved for template references; quote the string or add @template"
+}

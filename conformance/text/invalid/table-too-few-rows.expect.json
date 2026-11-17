@@ -1,0 +1,6 @@
+{
+  "col": 1,
+  "error": true,
+  "line": 3,
+  "message": "table declares 2 rows but only 1 were found (rows are indented 2 spaces)"
+}

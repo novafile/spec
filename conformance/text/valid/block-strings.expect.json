@@ -1,0 +1,5 @@
+{
+  "binary": "0d03086b65657006426c696e65206f6e650a2020696e64656e7465640a0a616674657220626c616e6b0a0c6e65737465640d010874657874060a646565700a0a73747269700606610a62",
+  "canonical": "keep: |\n  line one\n    indented\n\n  after blank\nnested:\n  text: |\n    deep\nstrip: |-\n  a\n  b\n",
+  "revision": "sha256:d269b64398d136c7b3d008fd7d9d6354eeef26835b42d8882f179b8c3a6cf876"
+}

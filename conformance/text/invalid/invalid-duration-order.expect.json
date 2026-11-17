@@ -1,0 +1,6 @@
+{
+  "col": 4,
+  "error": true,
+  "line": 1,
+  "message": "invalid duration \"1m1h\" (expected e.g. 1h30m, 1.5s or PT1H30M)"
+}

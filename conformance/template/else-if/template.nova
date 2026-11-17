@@ -1,0 +1,9 @@
+@template
+@param n: int
+r:
+  @if $n == 1:
+    v: one
+  @else if $n == 2:
+    v: two
+  @else:
+    v: many

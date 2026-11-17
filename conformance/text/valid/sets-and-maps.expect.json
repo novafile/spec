@@ -1,0 +1,5 @@
+{
+  "binary": "0d02026d0e03030206066f6e6506026b0602760b020302030406087061697202730c03060261060262060263",
+  "canonical": "m: @map{1 => one, k => v, (1, 2) => pair}\ns: @set[a, b, c]\n",
+  "revision": "sha256:7cb7ae4ec43dd4ddbc79b8d86860ffdebff048b724dc0e5378162519102f60c9"
+}

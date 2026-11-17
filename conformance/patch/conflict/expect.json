@@ -1,0 +1,5 @@
+{
+  "error": "op-failed",
+  "message": "op 1 (line 2) `services[id=api].replicas: 4 -> 8`: conflict: expected 4, found 5",
+  "op": 1
+}

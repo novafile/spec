@@ -1,0 +1,2 @@
+s: @set[b, a, c]
+m: @map{1 => one, (1, 2) => pair, "k" => v}

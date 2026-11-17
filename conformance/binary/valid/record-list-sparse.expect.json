@@ -1,0 +1,5 @@
+{
+  "binary": "0a020d01026103020d0202610304026200",
+  "canonical": "- a: 1\n- a: 2\n  b: null\n",
+  "revision": "sha256:f22b5781459a2230590ce9d7355c5391e888332ff2f26e260a49e498d0fc5ac9"
+}

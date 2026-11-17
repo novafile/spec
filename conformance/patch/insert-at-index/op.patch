@@ -1,0 +1,2 @@
+@patch
++ services[0]: {id: first, image: f, port: 1, replicas: 1}

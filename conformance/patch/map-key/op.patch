@@ -1,0 +1,4 @@
+@patch
+= m[2]: two
++ m[3]: three
+- m[1]

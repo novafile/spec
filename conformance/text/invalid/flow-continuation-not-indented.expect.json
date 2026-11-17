@@ -1,0 +1,6 @@
+{
+  "col": 1,
+  "error": true,
+  "line": 2,
+  "message": "continuation lines of a multi-line value must be indented deeper than the line it starts on"
+}

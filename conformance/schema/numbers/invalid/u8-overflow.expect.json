@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "i"
+  ],
+  "messages": [
+    "256 is out of range for u8"
+  ]
+}

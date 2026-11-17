@@ -1,0 +1,4 @@
+a: @decimal("1.50")
+b: @decimal("-0.00")
+c: @decimal("1e30")
+d: @decimal("0.0001")

@@ -1,0 +1,6 @@
+{
+  "col": 8,
+  "error": true,
+  "line": 1,
+  "message": "duplicate column \"a\""
+}

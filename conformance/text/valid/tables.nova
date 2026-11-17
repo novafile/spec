@@ -1,0 +1,3 @@
+services[2]{id,port,enabled}:
+  auth, 8080, true
+  api,  3000, false

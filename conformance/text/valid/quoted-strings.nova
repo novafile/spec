@@ -1,0 +1,7 @@
+a: "line\nbreak"
+b: "tab\t \"q\" \\ \/"
+c: "\u00e9 \u{1F680} \ud83d\ude80"
+d: "\$HOME"
+e: ""
+f: "a: b"
+g: "x #y"

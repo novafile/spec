@@ -1,0 +1,5 @@
+services:
+  - id: auth
+    port: 8080
+  - id: api
+    port: 3000

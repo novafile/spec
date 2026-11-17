@@ -1,0 +1,11 @@
+keep: |
+  line one
+    indented
+
+  after blank
+strip: |-
+  a
+  b
+nested:
+  text: |
+    deep
