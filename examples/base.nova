@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: CC0-1.0
 # Shared settings imported by service.tpl.nova
 registry: ghcr.io/example
 region: eu-central-1

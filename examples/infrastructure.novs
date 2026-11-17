@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: CC0-1.0
 # Schema for the infrastructure examples (spec §6).
 @schema infrastructure@1.0.0
 @root Infrastructure

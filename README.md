@@ -28,8 +28,15 @@ The specification and the conformance suite change together. A pull request that
 
 ## License
 
-The specification, proposals, meta-schema and conformance suite are licensed under the [Apache License, Version 2.0](LICENSE) (SPDX-License-Identifier: `Apache-2.0`). Implementations of the format may use any license.
+| Component | License |
+| --- | --- |
+| Specification ([`SPEC.md`](SPEC.md)) and [`proposals/`](proposals/) | [Apache-2.0](LICENSE) |
+| Meta-schema ([`meta/`](meta/)) | [Apache-2.0](LICENSE) |
+| Grammar definitions (Appendix A; [tree-sitter-nova](https://github.com/novafile/tree-sitter-nova); the TextMate grammars in [vscode-novafile](https://github.com/novafile/vscode-novafile)) | Apache-2.0 |
+| Conformance test vectors ([`conformance/`](conformance/)) | [CC0-1.0](conformance/LICENSE) |
+| Examples ([`examples/`](examples/) and the code blocks in `SPEC.md` and `proposals/`) | [CC0-1.0](examples/LICENSE) |
+| Parser, serializer and validator code ([novafile/nova](https://github.com/novafile/nova)) | EUPL-1.2 OR MPL-2.0 |
 
-The example files in [`examples/`](examples/) are dedicated to the public domain under [CC0-1.0](examples/LICENSE) (SPDX-License-Identifier: `CC0-1.0`): copy them into your own projects without conditions.
+Third-party implementations can therefore reuse the specification, the meta-schema, the grammars and the test vectors without taking on the reference implementation's copyleft terms.
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this work shall be licensed as above, without any additional terms or conditions.

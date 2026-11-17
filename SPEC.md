@@ -2,6 +2,7 @@
 
 **Specification, version 0.1 (draft)**
 Status: working draft, accompanied by a Rust reference implementation at <https://github.com/novafile/nova>.
+License: this specification is licensed under the Apache License, Version 2.0 (`Apache-2.0`). The examples in it — every code block in this document and in the proposals, and the files in [`examples/`](examples/) — are dedicated to the public domain under CC0 1.0 (`CC0-1.0`), as are the conformance test vectors, so they can be copied into any project without conditions. The meta-schema (§6.8) is Apache-2.0, like this document.
 
 ---
 

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: CC0-1.0
 # Scale the API service; conditional on the current value.
 @patch infrastructure@1.0.0
 services[id=api].replicas: 5 -> 8
