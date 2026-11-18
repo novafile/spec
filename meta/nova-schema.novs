@@ -4,7 +4,7 @@
 # The meta-schema: the shape of schema descriptors (spec §6.8).
 # A schema's descriptor is ordinary NOVA data; this schema validates it,
 # including its own descriptor.
-@schema nova-schema@0.1.0
+@schema nova-schema@0.2.0
 @root Schema
 
 record Schema:
@@ -36,6 +36,7 @@ record FieldDef:
 record VariantDef:
   name: string @key @id(1)
   payload?: Type @id(2)
+  id?: u32 @id(3)
 
 enum Kind = any | null | bool | int | i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | float | decimal | rational | string | bytes | timestamp | duration | list | set | map | tuple | named
 

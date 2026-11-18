@@ -590,6 +590,11 @@ enum Status:                       # also: enum Status = active | draining | fai
   draining
   failed(string)                   # variant with a payload
 
+enum Phase:                        # variants may carry stable ids
+  pending @id(1)
+  running @id(2)
+  done(timestamp) @id(3)
+
 record Infrastructure:
   environment: string
   deployed_at: timestamp
@@ -599,6 +604,7 @@ record Infrastructure:
 
 - Definition names start with an uppercase letter. Fields are indented exactly two spaces.
 - A field line is `name[?]: type attributes* [= default]`, where the default is a flow value.
+- A variant is `name[(type)] attributes*`, on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
 - `#` starts a comment when it is at the start of a line or preceded by a space, outside quotes.
 
 **Types**
@@ -628,7 +634,7 @@ record Infrastructure:
 | `@range(lo..hi)` | numeric types | Inclusive bounds; either side may be omitted. Bounds are exact literals: an integer, a decimal (`0.1`, `1e3`) or a rational (`1/3`). |
 | `@len(lo..hi[, unit])` | string, bytes, list, set, map, record | Inclusive length bounds. For strings, `unit` selects what is counted: `scalars` (Unicode scalar values, the default), `utf8` (bytes of the UTF-8 encoding), `utf16` (UTF-16 code units) or `graphemes` (extended grapheme clusters, Unicode UAX #29). Other kinds count bytes or elements and take no unit. |
 | `@key` | field | Part of the record's identity: values of this record in the same list MUST differ in their key fields. Key fields MUST be required and non-nullable. |
-| `@id(n)` | field | Stable numeric identity for evolution checks and positional encodings. Unique per record. |
+| `@id(n)` | field, enum variant | Stable numeric identity (n ≥ 1) for evolution checks and positional encodings. Unique per record, or per enum. Either every variant of an enum carries `@id` or none does; a schema where only some do is invalid. |
 | `@deprecated` | field | Informational. |
 | `@open` | record (after the name) | Unknown fields are accepted and preserved. Records are **closed** by default. |
 
@@ -684,10 +690,15 @@ A new schema version is **backward compatible** with an old one if every value v
 | Widen a type: integer to wider integer, integer to `decimal`/`rational`, `decimal` to `rational`, small integer to `float`, `T` to `T?`, `T` to `any`, wider `@range`/`@len` (with the same `@len` unit) | compatible |
 | Narrow or change a type | breaking |
 | Make an optional field required (without a default) | breaking |
-| Add a variant | compatible (old readers reject the new variant: this is a forward-compatibility concern) |
+| Add a variant | compatible (old readers reject the new variant: this is a forward-compatibility concern). In an enum without `@id`, only appending is compatible: a variant inserted before others moves them (below) |
 | Remove a variant, or change its payload incompatibly | breaking |
+| Reorder the variants of an enum whose variants carry `@id` | compatible |
+| Change the `@id` of a variant that is kept | breaking |
+| Move a variant of an enum without `@id` to another position | breaking (Protobuf numbers such variants by position, §11.2) |
 | Add `@key` | breaking (existing data may contain duplicates) |
 | Rename a field that keeps the same `@id` | breaking for name-based representations (all text forms); compatible only for positional or ID-based encodings |
+
+A removal from an enum without `@id` also moves every later variant. Tools SHOULD report that shift once per enum, not once per moved variant. Union members (`type T = A | B`) are positional and carry no `@id`.
 
 ### 6.6 Fingerprints
 
@@ -731,10 +742,10 @@ In every case *new* MUST have greater precedence than *old*. A breaking release 
 
 ### 6.8 Schemas as data
 
-Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `nova-schema@0.1.0`. The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
+Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `nova-schema@0.2.0`. The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
 
 ```
-@schema nova-schema@0.1.0
+@schema nova-schema@0.2.0
 name: infrastructure
 version: 1.0.0
 root: Infrastructure
@@ -758,6 +769,7 @@ defs:
   - `item` for `list` and `set`;
   - `key` and `value` for `map`;
   - `items` for `tuple`.
+- A variant has a `name`, and optionally a `payload` type and an `id` (its `@id`), like a field.
 - A type can also carry `nullable`, `range` (exact bounds) and `len` (with an optional `unit`).
 - Boolean flags that are false, and absent optional parts, are omitted.
 
@@ -1195,6 +1207,7 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
 - records become messages;
 - enums with only unit variants become proto enums with a zero `…_UNSPECIFIED` value;
 - enums with payloads become messages with a `oneof`;
+- a variant's `@id` becomes its proto enum value number or its `oneof` field number; without `@id`, variants are numbered by position starting at 1;
 - timestamps and durations use the well-known types; decimals and rationals are strings;
 - optional fields, nullable types and fields with defaults become `optional`.
 
@@ -1404,7 +1417,7 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
 | Enum variant tags | `snake_case` (`!active`, `!failed(…)`) |
 | Schema definition names | `PascalCase` (enforced by the schema grammar, §6.1) |
 | Schema names | lowercase with `-_./` (enforced, §6.7) |
-| Field identities | every field of a record has `@id`, or none does |
+| Field identities | every field of a record has `@id`, or none does (for enum variants this is a schema rule, §6.1) |
 
 Exceptions are explicit:
 - `@compat json|yaml|toml` (§4.2) marks data whose names belong to an external contract;
@@ -1422,7 +1435,7 @@ Documents that declare `@schema` take their names from the schema, so naming rul
 | `mixed-list` | hint | lists that mix scalar kinds | — |
 | `compat-loss` | warning | in `@compat F` documents, values that F cannot represent | — |
 | `field-case` / `variant-case` | warning | schema field and variant names | — |
-| `partial-ids` | warning | records where only some fields have `@id` | — |
+| `partial-ids` | warning | records where only some fields have `@id`. An enum where only some variants have `@id` is not linted: it is an invalid schema (attribute table, §6.1) | — |
 
 Fixes are text edits at source spans, so comments and layout are preserved. `nvf convert` from JSON, YAML or TOML into NOVA text adds the matching `@compat` directive.
 
