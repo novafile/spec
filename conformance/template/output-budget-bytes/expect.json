@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "template output exceeds the limit of 67108864 bytes of string and bytes content"
+}

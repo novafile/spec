@@ -1065,7 +1065,12 @@ The result is a plain value. Hosts SHOULD validate it against the target schema.
 
 ### 9.5 Totality and limits
 
-The language has no user-defined functions, no recursion, no arithmetic, no I/O other than host-mediated imports, and iteration only over finite values. Every render therefore terminates. Because `@let` values can be referenced repeatedly, output can still grow exponentially, so implementations MUST enforce an **output budget**: a limit on the number of value nodes produced, counting every copy made by a reference. The reference default is 10^6 nodes, which defeats "billion laughs" constructions. Implementations MUST also bound the import depth (reference: 16) and MUST reject import cycles.
+The language has no user-defined functions, no recursion, no arithmetic, no I/O other than host-mediated imports, and iteration only over finite values. Every render therefore terminates. Because `@let` values can be referenced repeatedly, output can still grow exponentially, so implementations MUST enforce an **output budget** with two limits, both counting every copy made by a reference:
+
+- the number of value nodes produced (reference default: 10^6), which defeats "billion laughs" constructions;
+- the total bytes of string and bytes content produced (reference default: 64 MiB, 67108864 bytes), which defeats nested interpolation (§9.3), where a few nodes can carry exponentially long strings.
+
+Exceeding either limit is an error. Implementations MUST also bound the import depth (reference: 16) and MUST reject import cycles.
 
 **Imports** are resolved by the host. A host MUST NOT fetch from the network unless the user has configured it to. The reference file loader accepts only relative paths beneath the root template's directory and rejects absolute paths, URLs and `..` escapes.
 
@@ -1151,7 +1156,7 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
   - YAML 1.2 core schema, applied to plain scalars only. YAML 1.1 surprises (`yes`, `on`, `0777`) stay strings.
   - Integers are read exactly, including beyond 64 bits.
   - Quoted and block scalars are strings.
-  - Aliases are expanded under the output budget of §9.5, which defeats "billion laughs" documents.
+  - Aliases are expanded under the output budget of §9.5 (both its node and its byte limit), which defeats "billion laughs" documents.
   - Merge keys (`<<`) and tags other than the core tags and `!!binary` MUST be rejected (use templates, §9, instead).
   - A mapping with only string keys becomes a record; any other mapping becomes a map.
 - *Writing:*
