@@ -175,10 +175,21 @@ The rules:
 - **Value mode** applies when there is no `@columns`. Each non-blank, non-comment line is **exactly one flow value** (§4.7), written on a single line. Multi-line flow values are not allowed in NOVA Lines. A single-line flow value can hold any NOVA value, because quoted strings forbid raw newlines (§4.6).
 
   ```
-  {id: auth, at: @timestamp("2026-11-17T16:00:00Z"), state: !failed("disk full")}
-  {id: api, tags: @set[a, b]}
+  {ts: @timestamp("2026-11-17T16:00:00Z"), level: !error, service: api, req: {method: POST, path: /orders, status: 502}, user: {id: 42, roles: [admin]}, error: {kind: upstream, msg: "timeout after 30s"}}
+  {ts: @timestamp("2026-11-17T16:00:01Z"), level: !info, service: auth, req: {method: GET, path: /login, status: 200}, user: {id: 7, roles: []}}
   ```
+
+  This is the JSONL equivalent: the same shape and the same repeated keys, but with real types.
 - **Table mode** applies after `@columns {c1, …}`. Each line is a **table row** under the §4.9 rules: cells are flow values, an empty cell means an absent field, and the row has exactly as many cells as there are columns. A row denotes a record. A later `@columns` line redefines the columns for the rows that follow. This is allowed so that concatenating streams works (`cat a.novl b.novl`), but writers SHOULD NOT redefine columns otherwise.
+- **Choosing a mode.** Writers SHOULD use value mode by default, and table mode only when the records share a stable set of top-level keys. Value mode is the format for nested events such as logs. Table mode is an optimisation for flat rows. In table mode, nested values are written as flow-value cells, and an optional key gets an empty cell:
+
+  ```
+  @columns {ts, level, service, req, user, error}
+  @timestamp("2026-11-17T16:00:00Z"), !error, api, {method: POST, path: /orders, status: 502}, {id: 42, roles: [admin]}, {kind: upstream, msg: "timeout after 30s"}
+  @timestamp("2026-11-17T16:00:01Z"), !info, auth, {method: GET, path: /login, status: 200}, {id: 7, roles: []},
+  ```
+
+  This saves only the top-level keys: nested keys still repeat on every line in both modes. Removing them would need a positional profile or nested column headers (`req{method, path, status}`), which this proposal does not include.
 - **`@key <field>`** declares that `field` is unique across records. Readers MAY build a hash index on it, and a duplicate is a stream error. It also makes `[id=x]` addressable on streams (§4.7).
 - **`@end <count> [<revision>]`** is an optional trailer. It MUST be the last non-blank line. `count` is the number of records. The optional revision is the `tree:` root of the stream (§5.8). A reader that reaches EOF:
   - **with `@end`** checks the count, and the root if present, and reports the stream as *complete* or *corrupt*;
