@@ -193,7 +193,7 @@ The rules:
 
   The first line denotes `{ts: …, level: !error, service: api, req: {method: POST, path: /orders, status: 502}, user: {id: 42, roles: [admin]}, error: {kind: upstream, msg: "timeout after 30s"}}`. The third has no `status` in `req`, no `user`, and an extra `slow_ms`.
 
-  - A column spec is a name (`ts`), a **nested column** `name{spec, …}`, which may nest again, or the **rest column** `..`. Names are unique within each pair of braces, as in §4.9. `..` occurs at most once per pair of braces, and only as the last entry.
+  - A column spec is a name (`ts`), a **nested column** `name{spec, …}`, which may nest again, or the **rest column** `..`. Every pair of braces holds at least one entry, so `{}` and `c{}` are errors. Names are unique within each pair of braces, as in §4.9. `..` occurs at most once per pair of braces, and only as the last entry.
   - A cell under a nested column `c{s1, …, sn}` is one of:
     - empty: the field `c` is absent;
     - a tuple of **exactly** `n` elements: `c` is the record built from the elements in sub-column order. An element `!_` means that sub-field is absent, as in the positional profile (SPEC §4.12). An element under a nested sub-column follows these rules again;
@@ -816,7 +816,7 @@ Rationale: this makes `---` splitting (§4.11), structural indexing and parallel
 > | `@key <field>` | Every record has a unique value at the top-level field `field` within the segment. A violation is an error. |
 > | `@end <count> [<revision>]` | Ends the segment: `count` records were written, and the optional `tree:` revision (§2.14) is the root of the segment. It MUST be followed only by blank lines, comments or a new segment. |
 >
-> A column spec is a name, a nested column `name{spec, …}`, or the rest column `..`. Names MUST be unique within each pair of braces. `..` MUST occur at most once per pair of braces, as the last entry. A cell under a nested column with `n` sub-columns is empty (the field is absent), a tuple of exactly `n` elements (the field is the record of the elements in sub-column order, where `!_` marks an absent sub-field and nested sub-columns apply recursively), or any other flow value (the field's value). A cell under `..` MUST be empty or a record; its fields follow the declared fields of that level, and MUST NOT name a declared column of that level. A row or positional tuple with the wrong number of entries is an error.
+> A column spec is a name, a nested column `name{spec, …}`, or the rest column `..`. Each pair of braces MUST hold at least one entry, and names MUST be unique within it. `..` MUST occur at most once per pair of braces, as the last entry. A cell under a nested column with `n` sub-columns is empty (the field is absent), a tuple of exactly `n` elements (the field is the record of the elements in sub-column order, where `!_` marks an absent sub-field and nested sub-columns apply recursively), or any other flow value (the field's value). A cell under `..` MUST be empty or a record; its fields follow the declared fields of that level, and MUST NOT name a declared column of that level. A row or positional tuple with the wrong number of entries is an error.
 >
 > A line is a directive only if it begins at column 1 with `@` and a directive name from this table, or `@x-`, followed by a space or the end of the line. Every other non-blank, non-comment line is a record line. A new segment resets all directives of the previous one.
 >
