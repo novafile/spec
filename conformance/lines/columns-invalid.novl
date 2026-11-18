@@ -1,0 +1,5 @@
+@nova 0.2
+@columns {a, .., b}
+@columns {a, a}
+@columns {a{}}
+{a: 1}

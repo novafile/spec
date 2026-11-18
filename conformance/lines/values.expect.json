@@ -1,0 +1,12 @@
+{
+  "binary": "0a050d030461740880e8e3af0d00046964030208746167730a020602610602620d020469640304086e6f746506226c696e65206f6e650a6c696e652074776f03540a030302030403060f0e73746f70706564",
+  "canonical": "- at: @timestamp(\"2026-11-17T16:00:00Z\")\n  id: 1\n  tags: [a, b]\n- id: 2\n  note: |-\n    line one\n    line two\n- 42\n- [1, 2, 3]\n- !stopped\n",
+  "revision": "sha256:7b32fd97a066c2677a2e89f4e6191ef6d0c787616ec8f43d218a01e86f781158",
+  "segments": [
+    {
+      "count": 5,
+      "status": "complete"
+    }
+  ],
+  "skipped": []
+}

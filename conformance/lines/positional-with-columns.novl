@@ -1,0 +1,5 @@
+@nova 0.2
+@schema events@1.0.0#3b6011d8f5e2dbde
+@columns {id}
+@mode positional
+1

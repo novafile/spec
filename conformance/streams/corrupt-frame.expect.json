@@ -1,0 +1,18 @@
+{
+  "binary": "0a020d0104696403020d010469640308",
+  "canonical": "- id: 1\n- id: 4\n",
+  "revision": "sha256:184d12ab27da3726c4d0893320c8cbcc344dbc0949f0fe10f05b8ada6f1fc1f9",
+  "segments": [
+    {
+      "count": 2,
+      "message": "!end declares 4 records, but 2 were read",
+      "status": "corrupt"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 60,
+      "message": "CRC mismatch: expected 91ee6c1c, got 02ca916e"
+    }
+  ]
+}

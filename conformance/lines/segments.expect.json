@@ -1,0 +1,20 @@
+{
+  "binary": "0a040d02046964030202760602610d02046964030402760602620d02046964030202760602630d010469640302",
+  "canonical": "- id: 1\n  v: a\n- id: 2\n  v: b\n- id: 1\n  v: c\n- id: 1\n",
+  "revision": "sha256:853b964ac6a7289ddb3f68b92fa2c68ce84d5ba840d59a08166089df39f1b84f",
+  "segments": [
+    {
+      "count": 2,
+      "status": "complete"
+    },
+    {
+      "count": 1,
+      "status": "complete"
+    },
+    {
+      "count": 1,
+      "status": "open"
+    }
+  ],
+  "skipped": []
+}

@@ -1,0 +1,7 @@
+@nova 0.2
+# a cell under a nested column that is not a tuple is the field's value as written
+@columns {id, req{method, path}}
+1, "n/a"
+2, {method: GET, path: /, extra: true}
+3, null
+@end 3

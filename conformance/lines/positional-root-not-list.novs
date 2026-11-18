@@ -1,0 +1,5 @@
+@schema one@1.0.0
+@root Event
+
+record Event:
+  id: u32

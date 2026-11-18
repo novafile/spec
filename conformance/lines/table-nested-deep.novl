@@ -1,0 +1,7 @@
+@nova 0.2
+@columns {id, a{b, c{d, e}}}
+1, (x, (1, 2))
+2, (y, !_)
+3, (!_, (!_, 5))
+4, (z, "not a record")
+@end 4

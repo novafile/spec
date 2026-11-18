@@ -1,0 +1,22 @@
+{
+  "binary": "0a00",
+  "canonical": "[]\n",
+  "revision": "sha256:102b51b9765a56a3e899f7cf0ee38e5251f9c503b357b330a49183eb7b155604",
+  "segments": [
+    {
+      "count": 0,
+      "message": "@end declares 1 records, but 0 were read",
+      "status": "corrupt"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 2,
+      "message": "@key needs a top-level field name, found \"user.id\""
+    },
+    {
+      "at": 3,
+      "message": "record under an invalid header directive; skipped until the next segment"
+    }
+  ]
+}

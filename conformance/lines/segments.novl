@@ -1,0 +1,13 @@
+@nova 0.2
+@key id
+@columns {id, v}
+1, a
+2, b
+@end 2
+@nova 0.2
+# a new segment resets the header: value mode again
+@key id
+{id: 1, v: c}
+@end 1
+@schema other@1.0.0
+{id: 1}

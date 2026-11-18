@@ -1,0 +1,12 @@
+{
+  "binary": "0a010d0102610302",
+  "canonical": "- a: 1\n",
+  "revision": "sha256:d5969806a5381350915697be7346ee607696cf388bdbc9f3d713797425004bc2",
+  "segments": [
+    {
+      "count": 1,
+      "status": "complete"
+    }
+  ],
+  "skipped": []
+}

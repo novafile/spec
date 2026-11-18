@@ -5,8 +5,8 @@
 | Status | Draft proposal for discussion. Not normative until merged into SPEC.md. |
 | Targets | §2.13 (revisions), §4.2 (directives), §4.7/§4.9/§4.11 (text), §5.1–§5.5 (binary), §7.1–§7.5 (paths, queries, patches), §13–§14 (conformance, reference implementation) |
 | New file kinds | NOVA Lines (`.novl`), indexed binary files (`.nvb` with an index locator frame), patch sidecars (`FILE.patches`) |
-| New binary | frame flags `0x10 META` and `0x20 SHARED_DICT`; value tag `0x13 sized` (non-canonical) |
-| New directives | `@columns`, `@key`, `@end` (NOVA Lines); `@expect` (patches) |
+| New binary | frame flags `0x20 META` and `0x40 SHARED_DICT`; value tag `0x13 sized` (non-canonical) |
+| New directives | `@columns` (with nested headers and a rest column `..`), `@key`, `@end` (NOVA Lines); `@mode positional` in NOVA Lines; `@expect` (patches) |
 | New revision form | `tree:` Merkle revisions, alongside `sha256:` |
 | New crates | `nova-stream`, `nova-doc`, `nova-tui` |
 | Date | 2026-11-17 |
@@ -21,10 +21,10 @@ The recommendations, in one table:
 
 | Area | Recommendation |
 | --- | --- |
-| Text record streams | **NOVA Lines** (`.novl`). Each non-blank, non-comment line is one complete flow value, as in JSONL but with NOVA's types. An optional header (`@nova`, `@schema`, `@columns {…}`, `@key id`) switches to **streaming-table mode**, where each line is a table row. An optional trailer `@end <count> [tree:<root>]` detects truncation. |
+| Text record streams | **NOVA Lines** (`.novl`). Each non-blank, non-comment line is one complete flow value, as in JSONL but with NOVA's types. An optional header (`@nova`, `@schema`, `@columns {…}`, `@key id`) switches to **streaming-table mode**, where each line is a table row. Nested column headers (`req{method, path}`) and a rest column `..` fit sparse, nested, open-ended records such as logs. Peers that share a schema can use `@mode positional` instead. An optional trailer `@end <count> [tree:<root>]` detects truncation. |
 | Row count `[N]` | **Kept mandatory in documents.** There is no `[?]`. Unknown-length tables live only in NOVA Lines, where `@end` plays the role of `[N]`. A stream with no `@end` is reported as *open* (complete but unverified), not as an error. |
 | `---` streams (§4.11) | Kept for multi-document configuration bundles. The spec gains an **indentation invariant**: continuation lines of multi-line flow values must be indented deeper than their owner. This closes a real ambiguity in which `---` inside a multi-line flow is split as a separator (§2.3). |
-| Binary streams | Concatenated frames as today, plus **META frames** (flag `0x10`) carrying `!header`, `!dict`, `!index`, `!end` and a fixed 26-byte `!locator` at the end of the file. With `SHARED_DICT` (flag `0x20`), a frame's string table is pre-seeded from a stream dictionary. Writers batch 64–4096 records per frame. |
+| Binary streams | Concatenated frames as today, plus **META frames** (flag `0x20`) carrying `!header`, `!dict`, `!index`, `!end` and a fixed 26-byte `!locator` at the end of the file. With `SHARED_DICT` (flag `0x40`), a frame's string table is pre-seeded from a stream dictionary. Writers batch 64–4096 records per frame. |
 | String table | Stays per frame by default. A stream-scoped dictionary is opt-in through `SHARED_DICT`. Dictionaries are **immutable and identified by id**, so resync and random access still work. |
 | Random access | An **index META frame** holding `u64` offset tables (frames, records, large subtrees), located through a fixed-size final locator frame. The file is still a valid frame stream. This follows the Parquet, Arrow-file and zip pattern of writing metadata at the end. |
 | Skipping subtrees | A non-canonical wrapper tag **`0x13 sized`**: `0x13 varint(byte_len) value`. Its string-table entries are **scoped**: they are popped at the end of the wrapped value, so a reader can skip it in O(1) without losing back-reference state. Writers wrap only large containers (≥ 4 KiB by default). Canonical encoding is unchanged, so revisions are unchanged. |
@@ -171,7 +171,8 @@ web,  ghcr.io/example/web:v1,  80, , false      # empty cell = absent field (§4
 
 The rules:
 
-- **Header.** Zero or more directive lines at column 1, before the first record: `@nova`, `@schema`, `@key`, `@columns`, and `x-…`.
+- **Header.** Zero or more directive lines at column 1, before the first record: `@nova`, `@schema`, `@key`, `@columns`, `@mode`, and `@x-…`. NOVA Lines is a 0.2 feature, so the version is `@nova 0.2`.
+- **Directives vs. records.** A line is a directive only if it starts at column 1 with `@` followed by one of the directive names above (`@nova`, `@schema`, `@key`, `@columns`, `@mode`, `@end`, or `@x-…`) and then a space or the end of the line. Every other non-blank, non-comment line is a record line, even if it starts with `@`, such as a row whose first cell is `@timestamp("…")`.
 - **Value mode** applies when there is no `@columns`. Each non-blank, non-comment line is **exactly one flow value** (§4.7), written on a single line. Multi-line flow values are not allowed in NOVA Lines. A single-line flow value can hold any NOVA value, because quoted strings forbid raw newlines (§4.6).
 
   ```
@@ -181,40 +182,63 @@ The rules:
 
   This is the JSONL equivalent: the same shape and the same repeated keys, but with real types.
 - **Table mode** applies after `@columns {c1, …}`. Each line is a **table row** under the §4.9 rules: cells are flow values, an empty cell means an absent field, and the row has exactly as many cells as there are columns. A row denotes a record. A later `@columns` line redefines the columns for the rows that follow. This is allowed so that concatenating streams works (`cat a.novl b.novl`), but writers SHOULD NOT redefine columns otherwise.
-- **Choosing a mode.** Writers SHOULD use value mode by default, and table mode only when the records share a stable set of top-level keys. Value mode is the format for nested events such as logs. Table mode is an optimisation for flat rows. In table mode, nested values are written as flow-value cells, and an optional key gets an empty cell:
+- **Nested columns and the rest column.** Real records are rarely flat or uniform. A structured log event has nested parts, optional fields and a long tail of rare keys. Table mode handles all three, without a schema:
 
   ```
-  @columns {ts, level, service, req, user, error}
-  @timestamp("2026-11-17T16:00:00Z"), !error, api, {method: POST, path: /orders, status: 502}, {id: 42, roles: [admin]}, {kind: upstream, msg: "timeout after 30s"}
-  @timestamp("2026-11-17T16:00:01Z"), !info, auth, {method: GET, path: /login, status: 200}, {id: 7, roles: []},
+  @columns {ts, level, service, req{method, path, status}, user{id, roles}, ..}
+  @timestamp("2026-11-17T16:00:00Z"), !error, api, (POST, /orders, 502), (42, [admin]), {error: {kind: upstream, msg: "timeout after 30s"}}
+  @timestamp("2026-11-17T16:00:01Z"), !info, auth, (GET, /login, 200), (7, []),
+  @timestamp("2026-11-17T16:00:02Z"), !warn, api, (GET, /health, !_), , {slow_ms: 950}
   ```
 
-  This saves only the top-level keys: nested keys still repeat on every line in both modes. Removing them would need a positional profile or nested column headers (`req{method, path, status}`), which this proposal does not include.
-- **`@key <field>`** declares that `field` is unique across records. Readers MAY build a hash index on it, and a duplicate is a stream error. It also makes `[id=x]` addressable on streams (§4.7).
+  The first line denotes `{ts: …, level: !error, service: api, req: {method: POST, path: /orders, status: 502}, user: {id: 42, roles: [admin]}, error: {kind: upstream, msg: "timeout after 30s"}}`. The third has no `status` in `req`, no `user`, and an extra `slow_ms`.
+
+  - A column spec is a name (`ts`), a **nested column** `name{spec, …}`, which may nest again, or the **rest column** `..`. Names are unique within each pair of braces, as in §4.9. `..` occurs at most once per pair of braces, and only as the last entry.
+  - A cell under a nested column `c{s1, …, sn}` is one of:
+    - empty: the field `c` is absent;
+    - a tuple of **exactly** `n` elements: `c` is the record built from the elements in sub-column order. An element `!_` means that sub-field is absent, as in the positional profile (SPEC §4.12). An element under a nested sub-column follows these rules again;
+    - any other flow value, which is the field's value as written. This is the escape hatch for rows that do not fit the header, for example `req: "n/a"`.
+
+    Because a tuple cell is always read positionally, a field whose value is itself a tuple MUST NOT be declared as a nested column. Writers declare it as a plain column.
+  - A cell under `..` is empty or a record literal. Its fields are added after the declared fields of the same level, in written order. A rest field whose name is a declared column at that level is an error, so every field has exactly one place to be written.
+  - A row with the wrong number of cells, or a positional tuple with the wrong number of elements, is an error. This keeps the truncation check of §4.9.
+  - The record a row denotes has the declared fields in column order, then the rest fields. A record written in table mode can therefore read back in a different field order. That is the same value, because field order is not part of a record (SPEC §2.10).
+- **Positional NOVA Lines.** Peers that share a schema can drop the field names entirely, with the positional profile of SPEC §4.12:
+
+  ```
+  @schema logs@1.0.0#8c21a0f3d5e6b7c8
+  @mode positional
+  (@timestamp("2026-11-17T16:00:00Z"), !error, api, (POST, /orders, 502), (42, [admin]), !upstream("timeout after 30s"))
+  (@timestamp("2026-11-17T16:00:01Z"), !info, auth, (GET, /login, 200), (7, []), !_)
+  ```
+
+  The header MUST contain `@schema` with a fingerprint and `@mode positional`. The schema's `@root` MUST be a list type `list<T>` (or `T[]`), and each record line is one `T` written under the §4.12 rules: named record types become tuples, absent fields are `!_`, records of `@open` types with unknown fields cannot be written, and the decoded record MUST validate against `T`. Different event kinds are variants with record payloads, and optional fields are `!_`. `@mode positional` and `@columns` MUST NOT both be in effect in one segment.
+- **Choosing a mode.** Writers SHOULD use value mode by default. It is the JSONL equivalent and needs no header. Table mode is RECOMMENDED when most records share a set of frequent keys: declare those keys, nested where the sub-keys are stable, and put the long tail into `..`. Positional mode is for peers that hold the schema. As in SPEC §4.12, it SHOULD NOT be used for storage or for streams that people read.
+- **`@key <field>`** declares that the top-level field `field` is unique across the records of the segment. Readers MAY build a hash index on it, and a duplicate is a stream error. It also makes `[id=x]` addressable on streams (§4.7).
 - **`@end <count> [<revision>]`** is an optional trailer. It MUST be the last non-blank line. `count` is the number of records. The optional revision is the `tree:` root of the stream (§5.8). A reader that reaches EOF:
-  - **with `@end`** checks the count, and the root if present, and reports the stream as *complete* or *corrupt*;
+  - **with `@end`** checks the count, and the root if present, and reports the stream as *complete* or *corrupt*. A reader that does not implement `tree:` checks only the count and reports the root as *unverified*;
   - **without `@end`** reports the stream as *open*. Open is a status, not an error: `tail -f` works and producers can crash. `--strict` turns *open* into an error.
-- **Errors.** A malformed line is reported with its line number and skipped in recovering mode (the default for `nvf get`; `--strict` stops). Because a record is always exactly one line, recovery is trivial and exact.
-- **Concatenation.** Header directives MAY reappear later in the stream. `@nova` or `@schema` after records start a new *segment*. An `@end` inside a concatenation closes only its own segment.
+- **Errors.** A malformed line is reported with its line number and skipped in recovering mode (the default for `nvf get`; `--strict` stops). Because a record is always exactly one line, recovery is trivial and exact. An invalid header directive (or binary `!header`) is different: the rows that follow cannot be interpreted, so the reader reports it and skips every record of that segment, up to the next segment.
+- **Concatenation.** Header directives MAY reappear later in the stream. `@nova` or `@schema` after records start a new *segment*. A new segment resets all header state: `@columns`, `@mode`, `@key` and `@schema` from the previous segment no longer apply, and `@key` uniqueness is checked per segment. An `@end` inside a concatenation closes only its own segment.
 
 **Why not `[?]{cols}:` inside ordinary documents?** The `[N]` count is NOVA's guard against truncated LLM output (§4.9). An escape hatch there would be used exactly when the guard matters. Streams are a different object: they are expected to be open, and they get their own trailer. Converting is lossless. `nvf convert --to nova x.novl` yields `[N]{…}:` with the count filled in, and `nvf convert --to novl doc.nova --path items` goes the other way.
 
-**Why not reuse `---` for records?** `---` documents are block-structured, cost a separator line each, and cannot be parsed from an arbitrary byte offset without scanning back to a separator. NOVA Lines records can be: from any byte offset, skip to the next `\n`. The one piece of context needed is the latest `@columns` line, which a splitter finds by scanning backwards for a line starting with `@columns`, or reads from an index.
+**Why not reuse `---` for records?** `---` documents are block-structured, cost a separator line each, and cannot be parsed from an arbitrary byte offset without scanning back to a separator. NOVA Lines records can be: from any byte offset, skip to the next `\n`. The one piece of context needed is the latest `@columns` line (or `@mode` and `@schema`), which stays a single line even with nested headers. A splitter finds it by scanning backwards for a line starting with `@columns`, or reads it from an index.
 
 ### 4.3 Binary streams: META frames
 
-The frame layout (§5.4) stays as it is. Two flags are added:
+The frame layout (§5.4) stays as it is. Two flags are added (`0x10` is already TABLES in SPEC §5.4):
 
 | Flag | Name | Meaning |
 | --- | --- | --- |
-| `0x10` | META | The payload is a **stream-control value**, a variant (below), not a data record. Data readers skip it unless they understand it. |
-| `0x20` | SHARED_DICT | A `dict_id: varint` follows the schema field (or the flags byte, if there is no schema). The frame's string table starts pre-seeded with dictionary `dict_id` (§4.5). |
+| `0x20` | META | The payload is a **stream-control value**, a variant (below), not a data record. Data readers skip it unless they understand it. |
+| `0x40` | SHARED_DICT | A `dict_id: varint` follows the schema field (or the flags byte, if there is no schema). The frame's string table starts pre-seeded with dictionary `dict_id` (§4.5). |
 
 META payloads are ordinary NOVA values, so a single decoder handles both data and control:
 
 | Variant | Payload | Where |
 | --- | --- | --- |
-| `!header{nova, schema?, key?, columns?, created?, x-…?}` | Stream metadata, like NOVA Lines directives | First frame. MAY repeat after a segment boundary. |
+| `!header{nova, schema?, key?, columns?, mode?, created?, x-…?}` | Stream metadata, like NOVA Lines directives. `columns` is a list whose items are a string (a plain column), a one-field record such as `{req: [method, path]}` (a nested column), or `!rest` (`..`). | First frame. MAY repeat after a segment boundary. |
 | `!dict{id, strings: [..]}` | An immutable string dictionary | Before the first frame that references it. Writers SHOULD re-emit it periodically (for example every 64 MiB) so that recovering readers find it quickly. |
 | `!index{…}` | Offset tables (§5.3) | Near the end. |
 | `!end{count, root?}` | The same as NOVA Lines `@end` | Last data-bearing frame. |
@@ -223,12 +247,12 @@ META payloads are ordinary NOVA values, so a single decoder handles both data an
 The locator frame has a fixed byte layout, so a reader can find the index with one read from the end of the file:
 
 ```
-4E 4F 56 41  01  10  13        "NOVA", version 1, flags=META, length=19
+4E 4F 56 41  01  20  13        "NOVA", version 1, flags=META, length=19
 10 0E "locator"                variant-with-payload tag, str literal len 7
 07 08 <u64 BE offset>          bytes(8)
 ```
 
-That is 4 + 1 + 1 + 1 + 19 = **26 bytes**. A file with an index is *still* a plain concatenation of frames. Old-style readers that understand META simply see more frames, and §5.5 recovery is unchanged. (Readers implementing only spec 0.1 reject flag `0x10` as an unknown flag. That is the intended behavior for a pre-1.0 format.)
+That is 4 + 1 + 1 + 1 + 19 = **26 bytes**. A file with an index is *still* a plain concatenation of frames. Old-style readers that understand META simply see more frames, and §5.5 recovery is unchanged. (Readers implementing only spec 0.1 reject flag `0x20` as an unknown flag. That is the intended behavior for a pre-1.0 format.)
 
 **Batching.** One frame per record wastes about 7–12 bytes of framing per record. It also defeats the string table, because keys are re-sent in every frame. Writers SHOULD put **a list of records** in each data frame, 64–4096 records or about 64 KiB–1 MiB. The stream then denotes the *concatenation* of those lists. The `!header` field `batched: true` declares this, so the payload `[r1, r2, …]` is not mistaken for one list-valued record. Record addressing is `(frame, index-in-frame)`, and the index flattens it.
 
@@ -495,7 +519,7 @@ The 1 KiB small-subtree inline rule keeps the number of hash invocations near (b
 ### 5.9 Compression
 
 - **Outside NOVA framing.** Use `.nvb.zst` / `.novl.zst` in the **zstd seekable format**, with each zstd frame containing whole NOVA frames or whole lines (recommended 256 KiB–4 MiB uncompressed). NOVA index offsets are *uncompressed* offsets, and the seek table maps them to compressed ones.
-- **Not in v0.2:** a per-frame compression flag. If added later: flag `0x40 COMPRESSED` plus a codec byte (zstd, lz4), with the CRC computed over the *uncompressed* payload.
+- **Not in v0.2:** a per-frame compression flag. If added later: flag `0x80 COMPRESSED` plus a codec byte (zstd, lz4), with the CRC computed over the *uncompressed* payload.
 - Expect a 3–6× ratio on the text forms and 2–3× on binary for record-heavy data (○ typical; measure it).
 
 ### 5.10 Performance expectations and what to measure
@@ -536,8 +560,11 @@ pub enum StreamFormat { Lines, TextDocs, Binary }
 
 pub struct StreamHeader {
     pub nova: Option<String>, pub schema: Option<SchemaRef>,
-    pub key: Option<String>, pub columns: Option<Vec<String>>,
+    pub key: Option<String>, pub columns: Option<Vec<Column>>,
+    pub mode: Option<Mode>,                                          // Mode::Positional
 }
+
+pub enum Column { Field(String), Nested(String, Vec<Column>), Rest }
 
 pub enum StreamStatus { Complete { count: u64, root: Option<TreeRev> }, Open { count: u64 }, Corrupt(String) }
 
@@ -554,7 +581,7 @@ impl<R: std::io::BufRead> StreamReader<R> {
 pub struct StreamWriter<W> { /* format, header, batch size, dict, tree hasher, count */ }
 impl<W: std::io::Write> StreamWriter<W> {
     pub fn new(w: W, format: StreamFormat, header: StreamHeader, opts: WriteOpts) -> Result<Self, std::io::Error>;
-    pub fn write(&mut self, v: &Value) -> Result<(), WriteError>;   // validates against @columns / @key
+    pub fn write(&mut self, v: &Value) -> Result<(), WriteError>;   // validates against @columns / @mode / @key
     pub fn flush_batch(&mut self) -> Result<(), std::io::Error>;    // binary: emit one data frame
     pub fn finish(self, with_index: bool) -> Result<StreamSummary, std::io::Error>; // writes @end / !end (+ !index + !locator)
 }
@@ -616,7 +643,7 @@ pub fn tree_revision(v: &Value) -> TreeRev;
 └ j/k move  h/l fold  / search  : path  t table  y yank  e edit  u undo  w save  ? help ─────────────┘
 ```
 
-The table view (`t` on a list of uniform records) uses NOVA's compact-table notion: the columns are the union of the keys, ordered by first appearance, and empty cells mean the field is absent.
+The table view (`t` on a list of uniform records) uses NOVA's compact-table notion: the columns are the union of the keys, ordered by first appearance, and empty cells mean the field is absent. For a NOVA Lines stream with nested columns, the view shows grouped headers (`req.method`, `req.path`), and the rest column `..` as one column of records.
 
 ```
 ┌ services · table · 3 rows · 5 cols ───────────────────────────────────── sort: replicas ▼ ───────┐
@@ -773,28 +800,33 @@ The recommendation is yes: **every edit is a conditional patch op.** Concretely:
 
 Rationale: this makes `---` splitting (§4.11), structural indexing and parallel parsing well-defined. It is backward-incompatible only for documents that place flow continuation lines at or below the owner's indentation. Writers in the reference implementation never produce those.
 
-### 8.2 §4.11 amended and §4.12 added
+### 8.2 §4.11 amended and §4.13 added
 
 > **4.11 Text streams.** A text stream is a sequence of documents separated by lines consisting exactly of `---`. Because of the continuation-line rule (§4.7), such a line can never occur inside a document. Each document is parsed independently; an error in one document does not prevent reading the others.
 >
-> **4.12 NOVA Lines.** A NOVA Lines stream (media type `application/nova-lines`, extension `.novl`) is UTF-8 text consisting of an optional **header** of directive lines, followed by **record lines**. Blank lines and lines whose first non-space character is `#` are ignored. A record line is one flow value (§4.7) that MUST NOT span lines. If a `@columns {c1, …}` directive is in effect, each record line is instead a table row (§4.9) under those columns, and denotes a record.
+> **4.13 NOVA Lines.** A NOVA Lines stream (media type `application/nova-lines`, extension `.novl`) is UTF-8 text consisting of an optional **header** of directive lines, followed by **record lines**. Blank lines and lines whose first non-space character is `#` are ignored. A record line is one flow value (§4.7) that MUST NOT span lines. If a `@columns {c1, …}` directive is in effect, each record line is instead a table row (§4.9) under those columns, and denotes a record.
 >
 > Directives defined for NOVA Lines (each at column 1, on its own line):
 >
 > | Directive | Meaning |
 > | --- | --- |
 > | `@nova`, `@schema` | As in §4.2. Appearing after a record line, they begin a new segment. |
-> | `@columns {c1, …}` | Column names for the following rows. MAY be repeated; each occurrence applies until the next. |
-> | `@key <field>` | Every record has a unique value at `field` within the segment. A violation is an error. |
+> | `@columns {c1, …}` | Column specs for the following rows. MAY be repeated; each occurrence applies until the next. |
+> | `@mode positional` | Requires `@schema` with a fingerprint, whose `@root` MUST be a list type `list<T>` (or `T[]`). Each record line is one `T` in the positional profile (§4.12). MUST NOT be in effect together with `@columns`. |
+> | `@key <field>` | Every record has a unique value at the top-level field `field` within the segment. A violation is an error. |
 > | `@end <count> [<revision>]` | Ends the segment: `count` records were written, and the optional `tree:` revision (§2.14) is the root of the segment. It MUST be followed only by blank lines, comments or a new segment. |
 >
-> A reader that reaches the end of input without `@end` MUST report the stream as *open*. A reader in **recovering** mode that encounters an invalid record line MUST report it and continue with the next line. A NOVA Lines stream denotes the list of its records.
+> A column spec is a name, a nested column `name{spec, …}`, or the rest column `..`. Names MUST be unique within each pair of braces. `..` MUST occur at most once per pair of braces, as the last entry. A cell under a nested column with `n` sub-columns is empty (the field is absent), a tuple of exactly `n` elements (the field is the record of the elements in sub-column order, where `!_` marks an absent sub-field and nested sub-columns apply recursively), or any other flow value (the field's value). A cell under `..` MUST be empty or a record; its fields follow the declared fields of that level, and MUST NOT name a declared column of that level. A row or positional tuple with the wrong number of entries is an error.
+>
+> A line is a directive only if it begins at column 1 with `@` and a directive name from this table, or `@x-`, followed by a space or the end of the line. Every other non-blank, non-comment line is a record line. A new segment resets all directives of the previous one.
+>
+> A reader that reaches the end of input without `@end` MUST report the stream as *open*. A reader in **recovering** mode that encounters an invalid record line MUST report it and continue with the next line. If a header directive of a segment is invalid, the reader MUST report it and skip the records of that segment. A NOVA Lines stream denotes the list of its records.
 
 ### 8.3 §7.4 and §7.5 additions: `@expect` and removing the scope root
 
 > `@expect <rev>` — OPTIONAL; requires `@scope`. Before any operation is applied, the revision of the value at the scope MUST match `rev` (prefix match per §2.13), otherwise the patch fails with a *stale scope* conflict. `@base` and `@expect` MAY both be given.
 >
-> (§7.5 table, `- T`): When `T` is `.` and a scope `S` is in effect whose parent is a list, or a stream (§4.12, §5.5), the scoped element is removed.
+> (§7.5 table, `- T`): When `T` is `.` and a scope `S` is in effect whose parent is a list, or a stream (§4.13, §5.5), the scoped element is removed.
 
 ### 8.4 §2.14 (new): tree revisions
 
@@ -810,8 +842,8 @@ Rationale: this makes `---` splitting (§4.11), structural indexing and parallel
 
 ### 8.6 §5.4 additions: flags
 
-> | `0x10` META | The payload is a stream-control value (§5.6). It is not part of the data the stream denotes. |
-> | `0x20` SHARED_DICT | A `dict_id: varint` follows the schema reference, if any. The frame's string table initially holds the strings of dictionary `dict_id` (§5.6), in order. MUST NOT be combined with CANONICAL. |
+> | `0x20` META | The payload is a stream-control value (§5.6). It is not part of the data the stream denotes. |
+> | `0x40` SHARED_DICT | A `dict_id: varint` follows the schema reference, if any. The frame's string table initially holds the strings of dictionary `dict_id` (§5.6), in order. MUST NOT be combined with CANONICAL. |
 
 ### 8.7 §5.6 (new): stream control and indexes
 
@@ -837,6 +869,9 @@ Rationale: this makes `---` splitting (§4.11), structural indexing and parallel
 10. **Sidecar naming and discovery.** Use `FILE.patches` or `FILE.nova-patches`? Should `nvf get` apply sidecars automatically (risky), or only with `--with-patches`?
 11. **Schema validation of streams.** Validate per record against `@schema` (a schema for the record type) or against the list type? (Proposal: `@schema` in a stream header names the **record** type.)
 12. **JSONL detection.** Should `nvf` treat `.jsonl` as a stream (lazily) rather than as a `List` value by default? (Yes, for `get --stream` and the TUI. `convert` keeps today's behavior.)
+13. **Nested columns outside streams.** Should nested headers and `..` also apply to §4.9 tables in documents? They would serve the compact profile, but make the table header grammar part of every reader.
+14. **Absent sub-fields.** Is `!_` in positional tuples readable enough, or should a tuple cell allow empty elements (`(GET, /health, )`), like empty row cells?
+15. **Rest column scope.** Is `..` worth allowing at every nesting level, or only at the top level of a row?
 
 ---
 

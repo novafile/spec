@@ -1,0 +1,21 @@
+{
+  "binary": "0a010d0102610302",
+  "canonical": "- a: 1\n",
+  "revision": "sha256:d5969806a5381350915697be7346ee607696cf388bdbc9f3d713797425004bc2",
+  "segments": [
+    {
+      "count": 1,
+      "status": "complete"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 4,
+      "message": "record after @end; start a new segment with @nova or @schema"
+    },
+    {
+      "at": 5,
+      "message": "@key after @end; only @nova or @schema may start a new segment"
+    }
+  ]
+}

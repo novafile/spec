@@ -1,0 +1,12 @@
+{
+  "binary": "0a020d0202610302026203040d02026103060262061e23206e6f74206120636f6d6d656e74",
+  "canonical": "- a: 1\n  b: 2\n- a: 3\n  b: \"# not a comment\"\n",
+  "revision": "sha256:7d8d09bc376945fbe04dac7f77156c2a40d0b6462313eee5d4a98a5545df2b17",
+  "segments": [
+    {
+      "count": 2,
+      "status": "complete"
+    }
+  ],
+  "skipped": []
+}

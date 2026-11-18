@@ -1,0 +1,12 @@
+{
+  "binary": "0a030d030c616374697665020469640302086e616d65060a616c7068610d020469640304086e616d650608626574610d020c616374697665010469640306",
+  "canonical": "- active: true\n  id: 1\n  name: alpha\n- id: 2\n  name: beta\n- active: false\n  id: 3\n",
+  "revision": "sha256:3c7e8eb55f4c252a1232927d4bfa6a116001b3dc06ac16d607487f5177d2c8cf",
+  "segments": [
+    {
+      "count": 3,
+      "status": "complete"
+    }
+  ],
+  "skipped": []
+}

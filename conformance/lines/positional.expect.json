@@ -1,0 +1,21 @@
+{
+  "binary": "0a020d0304696403020a6c6576656c0f08696e666f066d7367060e737461727465640d0204696403040a6c6576656c0f0a6572726f72",
+  "canonical": "- id: 1\n  level: !info\n  msg: started\n- id: 2\n  level: !error\n",
+  "revision": "sha256:bfabdc60370092f9f546aab0be4cc8d85d71f8a6770f136b79dc5f685c5a4b99",
+  "segments": [
+    {
+      "count": 2,
+      "status": "complete"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 6,
+      "message": ": expected 3 positional fields, found 2"
+    },
+    {
+      "at": 7,
+      "message": "level: unknown variant \"loud\"; expected one of info | warn | error"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "binary": "0a040d0202610d02026206027802630d02026403020265030404696403020d0202610d01026206027904696403040d0202610d0102630d010265030a04696403060d0202610d02026206027a026306186e6f742061207265636f72640469640308",
+  "canonical": "- a:\n    b: x\n    c:\n      d: 1\n      e: 2\n  id: 1\n- a:\n    b: y\n  id: 2\n- a:\n    c:\n      e: 5\n  id: 3\n- a:\n    b: z\n    c: not a record\n  id: 4\n",
+  "revision": "sha256:ff0219d8148539c8298d2d1ff5a90cfd8e4fb9998ddfec62c574de287fba7c8c",
+  "segments": [
+    {
+      "count": 4,
+      "status": "complete"
+    }
+  ],
+  "skipped": []
+}

@@ -1,0 +1,6 @@
+@nova 0.2
+@columns {id, name, active}
+1, alpha, true
+2, beta,
+3, , false
+@end 3

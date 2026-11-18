@@ -1,0 +1,21 @@
+{
+  "binary": "0a010d020261030202620304",
+  "canonical": "- a: 1\n  b: 2\n",
+  "revision": "sha256:36a50bde2da4cb4ea10a3448feb38a21f4e711c33199428149e9e6b09520d06e",
+  "segments": [
+    {
+      "count": 1,
+      "status": "complete"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 4,
+      "message": "duplicate column \"a\""
+    },
+    {
+      "at": 5,
+      "message": "record under an invalid header directive; skipped until the next segment"
+    }
+  ]
+}

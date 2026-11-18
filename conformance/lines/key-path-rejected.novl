@@ -1,0 +1,4 @@
+@nova 0.2
+@key user.id
+{user: {id: 1}}
+@end 1

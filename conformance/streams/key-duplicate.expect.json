@@ -1,0 +1,21 @@
+{
+  "binary": "0a040d0104696403020d0104696403040d0104696403060d010469640308",
+  "canonical": "- id: 1\n- id: 2\n- id: 3\n- id: 4\n",
+  "revision": "sha256:47ac42385031832e42980af76e68ba47f8b0b59f25eab52564ddf9d54bfc1dfa",
+  "segments": [
+    {
+      "count": 4,
+      "status": "complete"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 70,
+      "message": "record 1: duplicate key id value 1"
+    },
+    {
+      "at": 92,
+      "message": "record 0: record has no key field \"id\""
+    }
+  ]
+}

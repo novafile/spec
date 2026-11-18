@@ -1,0 +1,6 @@
+@nova 0.2
+@columns {a, b}
+1, 2
+@columns {a, a}
+3, 4
+@end 1

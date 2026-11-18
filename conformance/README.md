@@ -31,6 +31,21 @@ Failure cases contain `"error"`. Whether a case fails is normative; error messag
 | `query/DOC/` | `doc.nova`, `queries.txt` (one path per line) | `expect.json`: per query the selected value, or `error`: `not-found`, `ambiguous`, `type`, `not-singular`, `invalid-path` |
 | `patch/CASE/` | `doc.nova`, `op.patch` (applied without a schema) | `expect.json`: the patched value, or `error`: `syntax`, `stale-base`, `scope`, `op-failed` (with `op`, the failing operation's 1-based index), `invalid` |
 | `template/CASE/` | `template.nova`, `args.nova` (a record of parameters) | `expect.json`: the rendered value, or `{"error": true, …}` |
+| `lines/` | `NAME.novl` — a NOVA Lines stream (proposal 0002 §4.13), plus `NAME.novs` for positional streams | `NAME.expect.json`: as `text/valid` for the list of records read, plus `skipped` and `segments` (below) |
+| `streams/` | `NAME.bin` — a binary record stream: frames with META `!header`/`!end` frames (proposal 0002 §4.3), plus `NAME.novs` for positional streams | as `lines/`; `skipped[].at` is a byte offset |
+
+## Record streams
+
+`lines/` and `streams/` cases are read in recovering mode: an invalid line or frame is skipped and reading continues. Their expectations add:
+
+| Field | Meaning | Normative |
+| --- | --- | --- |
+| `skipped` | `at` (1-based line, or byte offset of the frame) and `message` per skipped line, frame or batched record | `at` yes; `message` no |
+| `segments` | per segment: `count` of records read, `status` (`complete`: the end marker matches; `open`: no end marker; `corrupt`: it does not match) | `count` and `status` yes |
+
+An invalid header directive (or `!header`) rejects its segment: its records are skipped until the next segment starts. A strict reader stops at the first skipped entry instead.
+
+These cases follow a proposal, not yet the specification, and may change with it.
 
 ## Running the suite
 
@@ -49,3 +64,4 @@ A minimal runner for another implementation:
 - **Schemas (§6):** lossless conversions, exact numeric `@range` (the binary64 value nearest 0.1 lies above the decimal bound 0.1), `@len` units, closed and `@open` records, `@key` uniqueness, `{tag: payload}` variants, and SemVer release checks.
 - **Paths, queries and patches (§7).**
 - **Templates (§9),** including the output budget.
+- **Record streams (proposal 0002):** NOVA Lines value, table (nested and rest columns, literal cells) and positional modes, comments, segments from concatenation, end markers, `@key` uniqueness, header errors; binary streams with batches, unknown META frames, corrupt and truncated frames.

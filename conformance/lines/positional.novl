@@ -1,0 +1,8 @@
+@nova 0.2
+@schema events@1.0.0#3b6011d8f5e2dbde
+@mode positional
+(1, !info, started)
+(2, !error, !_)
+(3, !warn)
+(4, !loud, x)
+@end 2

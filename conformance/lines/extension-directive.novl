@@ -1,0 +1,4 @@
+@nova 0.2
+@x-producer example-logger 1.4
+{a: 1}
+@end 1

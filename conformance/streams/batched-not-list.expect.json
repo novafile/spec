@@ -1,0 +1,17 @@
+{
+  "binary": "0a010d010469640304",
+  "canonical": "- id: 2\n",
+  "revision": "sha256:84f3cba4d9a12aac696c9879a162bc49569cd8e35b396ae6e6d3beafd785a415",
+  "segments": [
+    {
+      "count": 1,
+      "status": "complete"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 40,
+      "message": "a batched stream's data frames hold lists"
+    }
+  ]
+}

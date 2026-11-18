@@ -1,0 +1,33 @@
+{
+  "binary": "0a020d020261030202620d0202630304026403060d030261030202620d02026303040264030602650302",
+  "canonical": "- a: 1\n  b:\n    c: 2\n    d: 3\n- a: 1\n  b:\n    c: 2\n    d: 3\n  e: 1\n",
+  "revision": "sha256:eb4cc8b0bba4a6de30bd8f3c7da95f23bfdedc6515b527982c9d9fdf51a7f311",
+  "segments": [
+    {
+      "count": 2,
+      "status": "complete"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 4,
+      "message": "row has 2 cells; the columns declare 3"
+    },
+    {
+      "at": 5,
+      "message": "b: tuple has 3 elements; the column declares 2 sub-columns"
+    },
+    {
+      "at": 6,
+      "message": "a: a declared column cannot also appear in the rest cell"
+    },
+    {
+      "at": 7,
+      "message": "..: the rest cell must be empty or a record, found int"
+    },
+    {
+      "at": 8,
+      "message": "expected a key (identifier or quoted string)"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+@nova 0.2
+# value mode: one flow value per line
+{id: 1, tags: [a, b], at: @timestamp("2026-11-17T16:00:00Z")}
+{id: 2, note: "line one\nline two"}
+42
+[1, 2, 3]
+!stopped
+@end 5

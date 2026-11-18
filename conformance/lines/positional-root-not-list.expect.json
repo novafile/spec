@@ -1,0 +1,17 @@
+{
+  "binary": "0a00",
+  "canonical": "[]\n",
+  "revision": "sha256:102b51b9765a56a3e899f7cf0ee38e5251f9c503b357b330a49183eb7b155604",
+  "segments": [
+    {
+      "count": 0,
+      "status": "open"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 4,
+      "message": "a stream of positional records needs a list @root, not Event"
+    }
+  ]
+}

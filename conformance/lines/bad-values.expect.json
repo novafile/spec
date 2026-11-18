@@ -1,0 +1,21 @@
+{
+  "binary": "0a020d01026103020d010261030a",
+  "canonical": "- a: 1\n- a: 5\n",
+  "revision": "sha256:e3a9e8e500bc67225b973e0f033a384e17d67a06fbbc91de68103eb53f08f2a9",
+  "segments": [
+    {
+      "count": 2,
+      "status": "complete"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 3,
+      "message": "expected a value"
+    },
+    {
+      "at": 4,
+      "message": "unexpected content after value"
+    }
+  ]
+}

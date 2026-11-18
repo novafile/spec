@@ -1,0 +1,12 @@
+@schema events@1.0.0
+@root Event[]
+
+record Event:
+  id: u32
+  level: Level
+  msg?: string
+
+enum Level:
+  info
+  warn
+  error

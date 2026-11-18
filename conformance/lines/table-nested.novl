@@ -1,0 +1,6 @@
+@nova 0.2
+@columns {ts, level, service, req{method, path, status}, user{id, roles}, ..}
+@timestamp("2026-11-17T16:00:00Z"), !error, api, (POST, /orders, 502), (42, [admin]), {error: {kind: upstream, msg: "timeout after 30s"}}
+@timestamp("2026-11-17T16:00:01Z"), !info, auth, (GET, /login, 200), (7, []),
+@timestamp("2026-11-17T16:00:02Z"), !warn, api, (GET, /health, !_), , {slow_ms: 950}
+@end 3

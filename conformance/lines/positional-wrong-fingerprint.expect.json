@@ -1,0 +1,21 @@
+{
+  "binary": "0a00",
+  "canonical": "[]\n",
+  "revision": "sha256:102b51b9765a56a3e899f7cf0ee38e5251f9c503b357b330a49183eb7b155604",
+  "segments": [
+    {
+      "count": 0,
+      "status": "open"
+    }
+  ],
+  "skipped": [
+    {
+      "at": 3,
+      "message": "@mode positional needs @schema with exactly this schema's fingerprint, events@1.0.0#3b6011d8f5e2dbde; found \"events@1.0.0#0000000000000000\""
+    },
+    {
+      "at": 4,
+      "message": "record under an invalid header directive; skipped until the next segment"
+    }
+  ]
+}

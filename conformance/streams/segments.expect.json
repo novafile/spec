@@ -1,0 +1,16 @@
+{
+  "binary": "0a040d02046964030202760602610d02046964030402760602620d0104696403060d020469640312067265710d02026d0606474554027006022f",
+  "canonical": "- id: 1\n  v: a\n- id: 2\n  v: b\n- id: 3\n- id: 9\n  req:\n    m: GET\n    p: /\n",
+  "revision": "sha256:b5e410cd2de4aa96f36723f51efb2d583fc6b87b20aa6af4197b6f049bcc880b",
+  "segments": [
+    {
+      "count": 3,
+      "status": "complete"
+    },
+    {
+      "count": 1,
+      "status": "complete"
+    }
+  ],
+  "skipped": []
+}

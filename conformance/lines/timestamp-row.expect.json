@@ -1,0 +1,12 @@
+{
+  "binary": "0a020d02026e03020474730880e8e3af0d000d02026e03040474730882e8e3af0d00",
+  "canonical": "- n: 1\n  ts: @timestamp(\"2026-11-17T16:00:00Z\")\n- n: 2\n  ts: @timestamp(\"2026-11-17T16:00:01Z\")\n",
+  "revision": "sha256:fa2f19477a1f59b5f71b0b9732bc03ce9e59dc301949fda959bb7adbe8beeb90",
+  "segments": [
+    {
+      "count": 2,
+      "status": "complete"
+    }
+  ],
+  "skipped": []
+}
