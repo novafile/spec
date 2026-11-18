@@ -1,6 +1,6 @@
 {
-  "col": 1,
+  "col": 3,
   "error": true,
-  "line": 3,
-  "message": "table declares 1 rows but more follow"
+  "line": 1,
+  "message": "table header declares 1 row, but 2 follow; write [2]"
 }

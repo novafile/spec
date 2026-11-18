@@ -2,5 +2,5 @@
   "col": 4,
   "error": true,
   "line": 1,
-  "message": "float 1e400 is out of range; use @float(\"inf\")"
+  "message": "float 1e400 is out of range; quote it if it is a string, or write @float(\"inf\")"
 }

@@ -1,6 +1,6 @@
 {
-  "col": 1,
+  "col": 3,
   "error": true,
-  "line": 3,
-  "message": "table declares 2 rows but only 1 were found (rows are indented 2 spaces)"
+  "line": 1,
+  "message": "table header declares 2 rows, but 1 follows; write [1]"
 }

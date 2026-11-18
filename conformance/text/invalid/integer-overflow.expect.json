@@ -2,5 +2,5 @@
   "col": 4,
   "error": true,
   "line": 1,
-  "message": "integer 340282366920938463463374607431768211456 is out of range"
+  "message": "integer 340282366920938463463374607431768211456 is out of range; quote it if it is a string"
 }
