@@ -1072,6 +1072,8 @@ The language has no user-defined functions, no recursion, no arithmetic, no I/O 
 
 Exceeding either limit is an error. Implementations MUST also bound the import depth (reference: 16) and MUST reject import cycles.
 
+The nesting-depth bound of §12 applies to templates, but only real nesting counts: the arms of an `@if … @else if … @else` chain are siblings, so a long chain is not a deep one.
+
 **Imports** are resolved by the host. A host MUST NOT fetch from the network unless the user has configured it to. The reference file loader accepts only relative paths beneath the root template's directory and rejects absolute paths, URLs and `..` escapes.
 
 ### 9.6 Overlays

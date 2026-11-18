@@ -1,0 +1,605 @@
+@template
+@param n: int
+r:
+  @if $n == 1:
+    v: 1
+  @else if $n == 2:
+    v: 2
+  @else if $n == 3:
+    v: 3
+  @else if $n == 4:
+    v: 4
+  @else if $n == 5:
+    v: 5
+  @else if $n == 6:
+    v: 6
+  @else if $n == 7:
+    v: 7
+  @else if $n == 8:
+    v: 8
+  @else if $n == 9:
+    v: 9
+  @else if $n == 10:
+    v: 10
+  @else if $n == 11:
+    v: 11
+  @else if $n == 12:
+    v: 12
+  @else if $n == 13:
+    v: 13
+  @else if $n == 14:
+    v: 14
+  @else if $n == 15:
+    v: 15
+  @else if $n == 16:
+    v: 16
+  @else if $n == 17:
+    v: 17
+  @else if $n == 18:
+    v: 18
+  @else if $n == 19:
+    v: 19
+  @else if $n == 20:
+    v: 20
+  @else if $n == 21:
+    v: 21
+  @else if $n == 22:
+    v: 22
+  @else if $n == 23:
+    v: 23
+  @else if $n == 24:
+    v: 24
+  @else if $n == 25:
+    v: 25
+  @else if $n == 26:
+    v: 26
+  @else if $n == 27:
+    v: 27
+  @else if $n == 28:
+    v: 28
+  @else if $n == 29:
+    v: 29
+  @else if $n == 30:
+    v: 30
+  @else if $n == 31:
+    v: 31
+  @else if $n == 32:
+    v: 32
+  @else if $n == 33:
+    v: 33
+  @else if $n == 34:
+    v: 34
+  @else if $n == 35:
+    v: 35
+  @else if $n == 36:
+    v: 36
+  @else if $n == 37:
+    v: 37
+  @else if $n == 38:
+    v: 38
+  @else if $n == 39:
+    v: 39
+  @else if $n == 40:
+    v: 40
+  @else if $n == 41:
+    v: 41
+  @else if $n == 42:
+    v: 42
+  @else if $n == 43:
+    v: 43
+  @else if $n == 44:
+    v: 44
+  @else if $n == 45:
+    v: 45
+  @else if $n == 46:
+    v: 46
+  @else if $n == 47:
+    v: 47
+  @else if $n == 48:
+    v: 48
+  @else if $n == 49:
+    v: 49
+  @else if $n == 50:
+    v: 50
+  @else if $n == 51:
+    v: 51
+  @else if $n == 52:
+    v: 52
+  @else if $n == 53:
+    v: 53
+  @else if $n == 54:
+    v: 54
+  @else if $n == 55:
+    v: 55
+  @else if $n == 56:
+    v: 56
+  @else if $n == 57:
+    v: 57
+  @else if $n == 58:
+    v: 58
+  @else if $n == 59:
+    v: 59
+  @else if $n == 60:
+    v: 60
+  @else if $n == 61:
+    v: 61
+  @else if $n == 62:
+    v: 62
+  @else if $n == 63:
+    v: 63
+  @else if $n == 64:
+    v: 64
+  @else if $n == 65:
+    v: 65
+  @else if $n == 66:
+    v: 66
+  @else if $n == 67:
+    v: 67
+  @else if $n == 68:
+    v: 68
+  @else if $n == 69:
+    v: 69
+  @else if $n == 70:
+    v: 70
+  @else if $n == 71:
+    v: 71
+  @else if $n == 72:
+    v: 72
+  @else if $n == 73:
+    v: 73
+  @else if $n == 74:
+    v: 74
+  @else if $n == 75:
+    v: 75
+  @else if $n == 76:
+    v: 76
+  @else if $n == 77:
+    v: 77
+  @else if $n == 78:
+    v: 78
+  @else if $n == 79:
+    v: 79
+  @else if $n == 80:
+    v: 80
+  @else if $n == 81:
+    v: 81
+  @else if $n == 82:
+    v: 82
+  @else if $n == 83:
+    v: 83
+  @else if $n == 84:
+    v: 84
+  @else if $n == 85:
+    v: 85
+  @else if $n == 86:
+    v: 86
+  @else if $n == 87:
+    v: 87
+  @else if $n == 88:
+    v: 88
+  @else if $n == 89:
+    v: 89
+  @else if $n == 90:
+    v: 90
+  @else if $n == 91:
+    v: 91
+  @else if $n == 92:
+    v: 92
+  @else if $n == 93:
+    v: 93
+  @else if $n == 94:
+    v: 94
+  @else if $n == 95:
+    v: 95
+  @else if $n == 96:
+    v: 96
+  @else if $n == 97:
+    v: 97
+  @else if $n == 98:
+    v: 98
+  @else if $n == 99:
+    v: 99
+  @else if $n == 100:
+    v: 100
+  @else if $n == 101:
+    v: 101
+  @else if $n == 102:
+    v: 102
+  @else if $n == 103:
+    v: 103
+  @else if $n == 104:
+    v: 104
+  @else if $n == 105:
+    v: 105
+  @else if $n == 106:
+    v: 106
+  @else if $n == 107:
+    v: 107
+  @else if $n == 108:
+    v: 108
+  @else if $n == 109:
+    v: 109
+  @else if $n == 110:
+    v: 110
+  @else if $n == 111:
+    v: 111
+  @else if $n == 112:
+    v: 112
+  @else if $n == 113:
+    v: 113
+  @else if $n == 114:
+    v: 114
+  @else if $n == 115:
+    v: 115
+  @else if $n == 116:
+    v: 116
+  @else if $n == 117:
+    v: 117
+  @else if $n == 118:
+    v: 118
+  @else if $n == 119:
+    v: 119
+  @else if $n == 120:
+    v: 120
+  @else if $n == 121:
+    v: 121
+  @else if $n == 122:
+    v: 122
+  @else if $n == 123:
+    v: 123
+  @else if $n == 124:
+    v: 124
+  @else if $n == 125:
+    v: 125
+  @else if $n == 126:
+    v: 126
+  @else if $n == 127:
+    v: 127
+  @else if $n == 128:
+    v: 128
+  @else if $n == 129:
+    v: 129
+  @else if $n == 130:
+    v: 130
+  @else if $n == 131:
+    v: 131
+  @else if $n == 132:
+    v: 132
+  @else if $n == 133:
+    v: 133
+  @else if $n == 134:
+    v: 134
+  @else if $n == 135:
+    v: 135
+  @else if $n == 136:
+    v: 136
+  @else if $n == 137:
+    v: 137
+  @else if $n == 138:
+    v: 138
+  @else if $n == 139:
+    v: 139
+  @else if $n == 140:
+    v: 140
+  @else if $n == 141:
+    v: 141
+  @else if $n == 142:
+    v: 142
+  @else if $n == 143:
+    v: 143
+  @else if $n == 144:
+    v: 144
+  @else if $n == 145:
+    v: 145
+  @else if $n == 146:
+    v: 146
+  @else if $n == 147:
+    v: 147
+  @else if $n == 148:
+    v: 148
+  @else if $n == 149:
+    v: 149
+  @else if $n == 150:
+    v: 150
+  @else if $n == 151:
+    v: 151
+  @else if $n == 152:
+    v: 152
+  @else if $n == 153:
+    v: 153
+  @else if $n == 154:
+    v: 154
+  @else if $n == 155:
+    v: 155
+  @else if $n == 156:
+    v: 156
+  @else if $n == 157:
+    v: 157
+  @else if $n == 158:
+    v: 158
+  @else if $n == 159:
+    v: 159
+  @else if $n == 160:
+    v: 160
+  @else if $n == 161:
+    v: 161
+  @else if $n == 162:
+    v: 162
+  @else if $n == 163:
+    v: 163
+  @else if $n == 164:
+    v: 164
+  @else if $n == 165:
+    v: 165
+  @else if $n == 166:
+    v: 166
+  @else if $n == 167:
+    v: 167
+  @else if $n == 168:
+    v: 168
+  @else if $n == 169:
+    v: 169
+  @else if $n == 170:
+    v: 170
+  @else if $n == 171:
+    v: 171
+  @else if $n == 172:
+    v: 172
+  @else if $n == 173:
+    v: 173
+  @else if $n == 174:
+    v: 174
+  @else if $n == 175:
+    v: 175
+  @else if $n == 176:
+    v: 176
+  @else if $n == 177:
+    v: 177
+  @else if $n == 178:
+    v: 178
+  @else if $n == 179:
+    v: 179
+  @else if $n == 180:
+    v: 180
+  @else if $n == 181:
+    v: 181
+  @else if $n == 182:
+    v: 182
+  @else if $n == 183:
+    v: 183
+  @else if $n == 184:
+    v: 184
+  @else if $n == 185:
+    v: 185
+  @else if $n == 186:
+    v: 186
+  @else if $n == 187:
+    v: 187
+  @else if $n == 188:
+    v: 188
+  @else if $n == 189:
+    v: 189
+  @else if $n == 190:
+    v: 190
+  @else if $n == 191:
+    v: 191
+  @else if $n == 192:
+    v: 192
+  @else if $n == 193:
+    v: 193
+  @else if $n == 194:
+    v: 194
+  @else if $n == 195:
+    v: 195
+  @else if $n == 196:
+    v: 196
+  @else if $n == 197:
+    v: 197
+  @else if $n == 198:
+    v: 198
+  @else if $n == 199:
+    v: 199
+  @else if $n == 200:
+    v: 200
+  @else if $n == 201:
+    v: 201
+  @else if $n == 202:
+    v: 202
+  @else if $n == 203:
+    v: 203
+  @else if $n == 204:
+    v: 204
+  @else if $n == 205:
+    v: 205
+  @else if $n == 206:
+    v: 206
+  @else if $n == 207:
+    v: 207
+  @else if $n == 208:
+    v: 208
+  @else if $n == 209:
+    v: 209
+  @else if $n == 210:
+    v: 210
+  @else if $n == 211:
+    v: 211
+  @else if $n == 212:
+    v: 212
+  @else if $n == 213:
+    v: 213
+  @else if $n == 214:
+    v: 214
+  @else if $n == 215:
+    v: 215
+  @else if $n == 216:
+    v: 216
+  @else if $n == 217:
+    v: 217
+  @else if $n == 218:
+    v: 218
+  @else if $n == 219:
+    v: 219
+  @else if $n == 220:
+    v: 220
+  @else if $n == 221:
+    v: 221
+  @else if $n == 222:
+    v: 222
+  @else if $n == 223:
+    v: 223
+  @else if $n == 224:
+    v: 224
+  @else if $n == 225:
+    v: 225
+  @else if $n == 226:
+    v: 226
+  @else if $n == 227:
+    v: 227
+  @else if $n == 228:
+    v: 228
+  @else if $n == 229:
+    v: 229
+  @else if $n == 230:
+    v: 230
+  @else if $n == 231:
+    v: 231
+  @else if $n == 232:
+    v: 232
+  @else if $n == 233:
+    v: 233
+  @else if $n == 234:
+    v: 234
+  @else if $n == 235:
+    v: 235
+  @else if $n == 236:
+    v: 236
+  @else if $n == 237:
+    v: 237
+  @else if $n == 238:
+    v: 238
+  @else if $n == 239:
+    v: 239
+  @else if $n == 240:
+    v: 240
+  @else if $n == 241:
+    v: 241
+  @else if $n == 242:
+    v: 242
+  @else if $n == 243:
+    v: 243
+  @else if $n == 244:
+    v: 244
+  @else if $n == 245:
+    v: 245
+  @else if $n == 246:
+    v: 246
+  @else if $n == 247:
+    v: 247
+  @else if $n == 248:
+    v: 248
+  @else if $n == 249:
+    v: 249
+  @else if $n == 250:
+    v: 250
+  @else if $n == 251:
+    v: 251
+  @else if $n == 252:
+    v: 252
+  @else if $n == 253:
+    v: 253
+  @else if $n == 254:
+    v: 254
+  @else if $n == 255:
+    v: 255
+  @else if $n == 256:
+    v: 256
+  @else if $n == 257:
+    v: 257
+  @else if $n == 258:
+    v: 258
+  @else if $n == 259:
+    v: 259
+  @else if $n == 260:
+    v: 260
+  @else if $n == 261:
+    v: 261
+  @else if $n == 262:
+    v: 262
+  @else if $n == 263:
+    v: 263
+  @else if $n == 264:
+    v: 264
+  @else if $n == 265:
+    v: 265
+  @else if $n == 266:
+    v: 266
+  @else if $n == 267:
+    v: 267
+  @else if $n == 268:
+    v: 268
+  @else if $n == 269:
+    v: 269
+  @else if $n == 270:
+    v: 270
+  @else if $n == 271:
+    v: 271
+  @else if $n == 272:
+    v: 272
+  @else if $n == 273:
+    v: 273
+  @else if $n == 274:
+    v: 274
+  @else if $n == 275:
+    v: 275
+  @else if $n == 276:
+    v: 276
+  @else if $n == 277:
+    v: 277
+  @else if $n == 278:
+    v: 278
+  @else if $n == 279:
+    v: 279
+  @else if $n == 280:
+    v: 280
+  @else if $n == 281:
+    v: 281
+  @else if $n == 282:
+    v: 282
+  @else if $n == 283:
+    v: 283
+  @else if $n == 284:
+    v: 284
+  @else if $n == 285:
+    v: 285
+  @else if $n == 286:
+    v: 286
+  @else if $n == 287:
+    v: 287
+  @else if $n == 288:
+    v: 288
+  @else if $n == 289:
+    v: 289
+  @else if $n == 290:
+    v: 290
+  @else if $n == 291:
+    v: 291
+  @else if $n == 292:
+    v: 292
+  @else if $n == 293:
+    v: 293
+  @else if $n == 294:
+    v: 294
+  @else if $n == 295:
+    v: 295
+  @else if $n == 296:
+    v: 296
+  @else if $n == 297:
+    v: 297
+  @else if $n == 298:
+    v: 298
+  @else if $n == 299:
+    v: 299
+  @else if $n == 300:
+    v: 300
+  @else:
+    v: 0
