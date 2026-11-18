@@ -379,7 +379,7 @@ Writers always emit the canonical NOVA notation (§4.10). The reference implemen
 
 ### 4.9 Tables
 
-A list of records with scalar fields can be written as a table. This is the core of the compact profile, and is also allowed in human text.
+A list of records can be written as a table. Cells are flow values, so a field may hold any value, including lists, records and variants; the compact profile (§4.10) uses tables only for scalar fields. This is the core of the compact profile, and is also allowed in human text.
 
 ```
 services[2]{id,image,port,replicas,enabled}:

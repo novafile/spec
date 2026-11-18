@@ -1,0 +1,4 @@
+# Cells are flow values: lists, records and variants are allowed
+rules[2]{gain,requires,limits}:
+  !cyanobacterium, [!photosynthesis], {min: 150.0}
+  !sulfate_reducer, [],
