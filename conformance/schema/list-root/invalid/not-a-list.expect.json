@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "."
+  ],
+  "messages": [
+    "expected list<Event>, found record"
+  ]
+}

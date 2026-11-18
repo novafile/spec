@@ -1,0 +1,5 @@
+{
+  "binary": "0a020d0304696403020a6c6576656c0f08696e666f08746167730c000d0304696403040a6c6576656c0f087761726e08746167730c02060261060262",
+  "canonical": "- id: 1\n  level: !info\n  tags: @set[]\n- id: 2\n  level: !warn\n  tags: @set[a, b]\n",
+  "revision": "sha256:85283cc0f1c0d966a5c2d2b9ddaf0dea3c1c245f2e9de66af28f87a90032d1f9"
+}

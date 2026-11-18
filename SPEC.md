@@ -603,6 +603,7 @@ record Infrastructure:
 ```
 
 - Definition names start with an uppercase letter. Fields are indented exactly two spaces.
+- `@root` takes any type from the table below, for example a definition (`@root Infrastructure`) or a list (`@root Service[]`).
 - A field line is `name[?]: type attributes* [= default]`, where the default is a flow value.
 - A variant is `name[(type)] attributes*`, on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
 - `#` starts a comment when it is at the start of a line or preceded by a space, outside quotes.
@@ -705,7 +706,7 @@ A removal from an enum without `@id` also moves every later variant. Tools SHOUL
 The **canonical schema text** renders:
 
 1. `@schema name@version`;
-2. `@root`;
+2. `@root`, with its type in long form (`@root list<Service>`);
 3. every definition, sorted by name, with fields in declared order and types in their long form (`list<T>`, not `T[]`).
 
 The **fingerprint** is the first 16 hexadecimal digits of the revision (§2.13) of the canonical text, taken as a NOVA string value. A full **schema reference with fingerprint** is written `name@version#fingerprint`, for example `infrastructure@1.2.0#8c21a0f3d5e6b7c8`. Fingerprints are unaffected by comments and formatting.
@@ -742,13 +743,13 @@ In every case *new* MUST have greater precedence than *old*. A breaking release 
 
 ### 6.8 Schemas as data
 
-Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `nova-schema@0.2.0`. The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
+Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `nova-schema@0.3.0`. The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
 
 ```
-@schema nova-schema@0.2.0
+@schema nova-schema@0.3.0
 name: infrastructure
 version: 1.0.0
-root: Infrastructure
+root: {kind: !named, ref: Infrastructure}
 defs:
   - name: Port
     alias: {kind: !u16, range: {min: 1, max: 65535}}
@@ -763,6 +764,7 @@ defs:
 ```
 
 **Structure of a descriptor:**
+- `root` is a type, written like a field's type.
 - Definitions are listed in name order, keyed by `name`. Each has exactly one of `record`, `enum` or `alias`.
 - A type is a record with a `kind` and the parts that kind needs:
   - `ref` for `named`;
@@ -1203,6 +1205,7 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
 - A deterministic mode implements RFC 8949 §4.2.1.
 
 **Protobuf (proto3).** Protobuf requires a schema; `novafile-proto` derives it from a NOVA schema:
+- `@root` MUST name a record type, which becomes the top-level message;
 - every record field MUST carry `@id(n)`, which becomes its field number;
 - records become messages;
 - enums with only unit variants become proto enums with a zero `…_UNSPECIFIED` value;

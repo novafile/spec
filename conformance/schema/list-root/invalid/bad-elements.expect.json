@@ -1,0 +1,13 @@
+{
+  "error": true,
+  "issue_paths": [
+    "[0].id",
+    "[1].id",
+    "[1].level"
+  ],
+  "messages": [
+    "-1 is out of range for u32",
+    "missing required field",
+    "unknown variant \"loud\"; expected one of info | warn | error"
+  ]
+}

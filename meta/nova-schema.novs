@@ -4,13 +4,13 @@
 # The meta-schema: the shape of schema descriptors (spec §6.8).
 # A schema's descriptor is ordinary NOVA data; this schema validates it,
 # including its own descriptor.
-@schema nova-schema@0.2.0
+@schema nova-schema@0.3.0
 @root Schema
 
 record Schema:
   name?: string @id(1)
   version?: string @id(2)
-  root?: string @id(3)
+  root?: Type @id(3)
   defs: list<Def> @id(4)
 
 # Exactly one of `record`, `enum` and `alias` is present.

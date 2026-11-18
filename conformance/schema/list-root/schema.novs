@@ -1,0 +1,13 @@
+@nova 0.1
+@schema events@1.0.0
+@root Event[] @len(1..)
+
+record Event:
+  id: u32
+  level: Level = !info
+  tags: set<string> = []
+
+enum Level:
+  info
+  warn
+  error
