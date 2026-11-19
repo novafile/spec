@@ -1,9 +1,9 @@
 {
   "error": true,
   "issue_paths": [
-    "goal.and[1]"
+    "goal"
   ],
   "messages": [
-    "matches no member of Atom | And | Not | Eq | AtStart: AtStart: unknown field \"extra\""
+    "matches no member of Formula: And: and[1]: matches no member of Formula: AtStart: unknown field \"extra\""
   ]
 }

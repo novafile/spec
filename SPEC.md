@@ -728,13 +728,13 @@ Resolving a value against a record type:
 
 Implementations SHOULD report **all** violations, each with the path (§7.1) of the offending value, rather than stopping at the first.
 
-A value that resolves against no member of a union is **one** issue, at the path of that value. The issue SHOULD name the union and SHOULD include, as detail, the issues of the member that came closest (for example the first member whose kind accepts the input). Those member issues are not reported as issues of their own.
+A value that resolves against no member of a union is **one** issue, at the path of that value. The issue SHOULD name the union and SHOULD include, as detail, the issues of the member that came closest (for example, for a record, the member whose field names match its keys; otherwise the first member whose kind accepts the input). Those member issues are not reported as issues of their own.
 
 **Validate** checks the same rules without producing a resolved value. **Resolve** returns the value with conversions and defaults applied. The revision of a document is computed from the document as stored, not from its resolution.
 
 ### 6.5 Evolution
 
-A new schema version is **backward compatible** with an old one if every value valid under the old schema resolves under the new one — in other words, new readers can read old data. Tools SHOULD report changes as compatible or breaking. The rules:
+A new schema version is **backward compatible** with an old one if every value valid under the old schema resolves under the new one, and every value that passes through a union resolves through the member at the same position as before (§6.3) — in other words, new readers can read old data, and read it the same way. A type that becomes a union counts as its first member: `string` → `string | int` keeps every string at position 1, `string` → `timestamp | string` moves them to position 2. Position, not overlap, is what counts, so reordering `int | string` is breaking even though no value could match both. Tools SHOULD report changes as compatible or breaking. The rules:
 
 | Change | Classification |
 | --- | --- |
@@ -839,7 +839,7 @@ defs:
 **Conversion:**
 - A schema and its descriptor convert into each other without loss: the fingerprint (§6.6) of the converted schema is unchanged.
 - An implementation MUST validate a descriptor against the meta-schema, and then apply every rule that applies to schema text: names, references, alias cycles, `@id` uniqueness and defaults.
-- The meta-schema can't express "exactly one of `record`, `enum`, `alias`"; that rule is enforced when converting a descriptor back to a schema. Likewise a `union` MUST have at least two `items`.
+- The meta-schema can't express "exactly one of `record`, `enum`, `alias`"; that rule is enforced when converting a descriptor back to a schema. Likewise a `union` MUST have at least two `items` and carries no `nullable`, `range` or `len`; those belong to its members.
 
 **Tooling.** Tools SHOULD accept a descriptor wherever a schema is accepted. The reference CLI also loads `.novs` files as their descriptors for `get`, `diff`, `hash` and `convert`. A patched `.novs` file is written back in the schema language.
 
@@ -1275,7 +1275,7 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
 - timestamps and durations use the well-known types; decimals and rationals are strings;
 - optional fields, nullable types and fields with defaults become `optional`.
 
-Values are resolved against the schema before encoding and validated after decoding. Features Protobuf cannot express are rejected with an error naming the definition and field: tuples, `any`, nested repeated values, nullable collections, non-scalar map keys and so on.
+Values are resolved against the schema before encoding and validated after decoding. Features Protobuf cannot express are rejected with an error naming the definition and field: tuples, `any`, unions, nested repeated values, nullable collections, non-scalar map keys and so on.
 
 ### 11.3 Language bindings
 
