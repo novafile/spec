@@ -1,0 +1,5 @@
+@schema novafile.dev/meta/catalog@0.1.0
+
+remote:
+  - prefix: acme.test/
+    url: https://schemas.acme.test/{rest}/{version}.novs

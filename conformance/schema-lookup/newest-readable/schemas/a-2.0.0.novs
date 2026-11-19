@@ -1,0 +1,5 @@
+@schema acme.test/a@2.0.0
+@root R
+
+record R:
+  x: int

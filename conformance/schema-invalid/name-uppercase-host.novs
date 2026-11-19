@@ -1,0 +1,6 @@
+# Schema names (§6.7): uppercase.
+@schema Acme.test/x@1.0.0
+@root R
+
+record R:
+  x: int

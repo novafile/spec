@@ -1,0 +1,6 @@
+# Schema names (§6.7): the last host label must start with a letter.
+@schema 10.0.0.1/x@1.0.0
+@root R
+
+record R:
+  x: int

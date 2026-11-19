@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: Apache-2.0
+# Normative source: https://github.com/novafile/spec/blob/main/meta/catalog.novs
+# Copies (e.g. the one embedded in the novafile-schema crate) must stay byte-identical to it.
+# The catalog meta-schema: the shape of schema catalogs (spec §6.9).
+@schema novafile.dev/meta/catalog@0.1.0
+@root Catalog
+
+type Name = string @len(1..255)
+type Revision = string @pattern("sha256:[0-9a-f]{64}")
+
+record Catalog:
+  schemas?: list<Source> @id(1)
+  remote?: list<Remote> @id(2)
+  pins?: list<Pin> @id(3)
+  fetch?: bool @id(4)
+
+record Source:
+  path: string @len(1..) @id(1)
+
+record Remote:
+  prefix: Name @key @id(1)
+  url: string @pattern("https://.+") @id(2)
+
+record Pin:
+  schema: string @key @id(1)        # name@version, without a fingerprint
+  revision: Revision @id(2)

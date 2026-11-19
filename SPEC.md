@@ -223,7 +223,7 @@ Directives defined for **data documents**:
 | Directive | Meaning |
 | --- | --- |
 | `@nova MAJOR.MINOR` | The NOVA language version the document is written in. OPTIONAL. If present it MUST be the first directive, and readers MUST reject versions they do not support (§13.1). |
-| `@schema <ref>` | The schema version the data was written against: `name@MAJOR.MINOR.PATCH`, optionally followed by `#` and a fingerprint (§6.6–6.7), e.g. `infrastructure@1.2.0#8c21a0f3d5e6b7c8`. Parsers MUST NOT fetch it. A validator that is given a schema MUST check the reference against it (§6.7). |
+| `@schema <ref>` | The schema version the data was written against: `name@MAJOR.MINOR.PATCH`, where `name` is a qualified or local schema name (§6.7), optionally followed by `#` and a fingerprint (§6.6–6.7), e.g. `infrastructure@1.2.0#8c21a0f3d5e6b7c8`. Parsers MUST NOT fetch it. A validator that is given a schema MUST check the reference against it (§6.7). |
 | `@revision <rev>` | The revision of the document the body was taken from (used in query responses, §7.3). |
 | `@scope <path>` | The location within that document the body was taken from (§7.3). |
 | `@envelope <kind>` | Marks an agent-result envelope (§8.2). |
@@ -828,9 +828,43 @@ The **fingerprint** is the first 16 hexadecimal digits of the revision (§2.13) 
 
 Schema versions are **Semantic Versioning 2.0.0** (<https://semver.org>) versions, and this is enforced, not advisory:
 
-- A named schema MUST declare `@schema name@MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`. The version MUST conform exactly to the SemVer 2.0.0 grammar: no leading zeros, no `v` prefix, all three components present. Schema names consist of lowercase ASCII letters, digits and `-_./`, start with a letter, and have no empty `/`-separated segment (no `//`, no trailing `/`).
+- A named schema MUST declare `@schema name@MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`. The version MUST conform exactly to the SemVer 2.0.0 grammar: no leading zeros, no `v` prefix, all three components present. The name MUST be a valid schema name (below).
 - A schema without a `@schema` line is **anonymous**. It can validate documents, but it cannot be referenced, and it cannot take part in evolution checks.
 - Version precedence follows SemVer §11. Build metadata is ignored for precedence and compatibility.
+
+**Schema names.** A schema name is **qualified**, rooted in a domain name the way Go module paths are, or **local**:
+
+```
+schema-name    = qualified-name / local-name          ; at most 255 bytes
+qualified-name = host 1*("/" segment)
+host           = label 1*("." label)                  ; at most 253 bytes
+label          = alnum [*(alnum / "-") alnum]         ; 1 to 63 bytes
+local-name     = first *("/" segment)                 ; first segment has no "."
+first          = lower *(lower / digit / "-" / "_")
+segment        = alnum *(alnum / "-" / "_" / ".")
+alnum          = lower / digit
+lower          = %x61-7A                              ; a-z
+```
+
+- A name is qualified if its first `/`-separated segment contains a `.`, and local otherwise. A qualified name MUST match `qualified-name`, and a local name MUST match `local-name`.
+- In a qualified name, the last label of the host MUST start with a letter, so IP addresses (`10.0.0.1/x`) are not hosts. Labels are lowercase LDH labels (RFC 1123); internationalized domain names are written in their A-label form (`xn--…`).
+- A qualified name has at least one path segment: `acme.example` alone is not a schema name.
+- Segments start with a letter or digit, so `.` and `..` segments, empty segments and leading or trailing `/` are impossible.
+- Two names are the same name if and only if they are equal as strings. The grammar admits exactly one spelling of each name, so no normalization applies.
+
+Valid: `infrastructure`, `acme/order`, `acme.example/billing/invoice`, `github.com/alice/pddl/domain`, `xn--bcher-kva.example/catalog`, `3m.com/parts`. Invalid: `Acme.example/x` (uppercase), `acme.example` and `my.schema` (no path), `acme.example/` (trailing slash), `acme.example//x`, `acme.example/./x`, `10.0.0.1/x`, `-acme.example/x`, `acme_corp.example/x` (`_` in a host).
+
+A qualified name belongs to whoever controls its host. Without a domain, a path on a hosting service where one owns an account (`github.com/alice/schemas/route`) serves the same purpose: the host owns the domain, the account owns the path below it. A name is an identity, not a location. It keeps its meaning if the domain changes hands; fingerprints and pins (§6.9) detect different content published under it. Local names are not globally unique, and are meant for schemas used within one project.
+
+| Names | Reserved for | Fetched (§6.9) |
+| --- | --- | --- |
+| `novafile.dev/…` | The NOVA project: the meta-schemas and any schemas this specification defines | the meta-schemas never, since implementations bundle them; others like any qualified name |
+| `example.com/…`, `example.net/…`, `example.org/…`, `*.example/…` | Documentation and examples (RFC 2606) | never |
+| `*.test/…` | Test suites (RFC 6761) | never |
+| `*.invalid/…`, `*.localhost/…` | Never resolvable (RFC 6761) | never |
+| `*.internal/…` | Private networks without a public domain | never; such names are expected to be mapped by a catalog |
+
+The version is never part of the name. `acme.example/invoice/v2` is a different schema from `acme.example/invoice`, with its own version history, not its second major version; `@2.0.0` says that. References name the exact version the data was written against, never a range.
 
 **Compatibility contract.** A reader holding schema version **R** can read data written against version **W** of the same schema if and only if:
 
@@ -856,10 +890,10 @@ In every case *new* MUST have greater precedence than *old*. A breaking release 
 
 ### 6.8 Schemas as data
 
-Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `nova-schema@0.3.2`. The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
+Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `novafile.dev/meta/schema@0.3.3` (`meta/schema.novs`). The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
 
 ```
-@schema nova-schema@0.3.2
+@schema novafile.dev/meta/schema@0.3.3
 name: infrastructure
 version: 1.0.0
 root: {kind: !named, ref: Infrastructure}
@@ -895,6 +929,73 @@ defs:
 - The meta-schema can't express "exactly one of `record`, `enum`, `alias`"; that rule is enforced when converting a descriptor back to a schema. Likewise a `union` MUST have at least two `items` and carries no `nullable`, `range`, `len` or `pattern`; those belong to its members. `pattern` is present only when `kind` is `string`, and is a valid I-Regexp. `literal` is present if and only if `kind` is `literal`, and such a type carries no `range`, `len` or `pattern`.
 
 **Tooling.** Tools SHOULD accept a descriptor wherever a schema is accepted. The reference CLI also loads `.novs` files as their descriptors for `get`, `diff`, `hash` and `convert`. A patched `.novs` file is written back in the schema language.
+
+**Transition.** Up to version 0.3.2, the meta-schema was named `nova-schema`. Until NOVA 1.0, implementations SHOULD read a descriptor that declares `@schema nova-schema@0.3.z` as if it declared `novafile.dev/meta/schema@0.3.z`, with a deprecation warning. Writers emit the new name.
+
+### 6.9 Finding schemas
+
+A reference `name@version[#fingerprint]` says which schema version data was written against. This section says where tools find that schema. Lookup is offline unless the user enables fetching.
+
+**Catalogs.** A **catalog** is a NOVA document that tells tools where schema files live, in the role of XML catalogs, import maps and vendor directories:
+
+```
+@schema novafile.dev/meta/catalog@0.1.0
+
+# Local sources, searched in order. A directory contributes every .novs file below it.
+schemas:
+  - path: schemas/
+  - path: vendor/acme.example/
+
+# Where to fetch names under a prefix, if the user has enabled fetching.
+remote:
+  - prefix: acme.example/
+    url: https://schemas.acme.example/{rest}/{version}.novs
+
+# Exact content expected for these versions, wherever they come from.
+pins:
+  - schema: acme.example/billing/invoice@2.1.0
+    revision: sha256:8c21a0f3d5e6b7c8a9f0e1d2c3b4a5968778695a4b3c2d1e0f9e8d7c6b5a4938
+```
+
+- Catalogs are validated by the meta-schema `novafile.dev/meta/catalog@0.1.0` (`meta/catalog.novs`). Implementations also check what it cannot express: names and references follow §6.7, and a URL template has no placeholders other than `{name}`, `{rest}` and `{version}`.
+- A catalog does not declare names. Each `.novs` file declares its own name and version in its `@schema` line, and tools index the files a catalog points to by that line, so a catalog cannot make a file mean something it does not say.
+- `schemas` lists files and directories, relative to the catalog's own directory. Directories are searched recursively. Anonymous schemas found there are ignored.
+- `remote` maps a name prefix to a URL template: `{name}` is the whole name, `{rest}` the part after the prefix, and `{version}` the version. The template MUST be an `https:` URL. A prefix is a whole number of segments: it ends with `/` or equals a complete name. The longest matching prefix wins.
+- `pins` record the full revision (§2.13) of the canonical schema text (§6.6) of a version. Wherever that version is found, its revision MUST equal the pin; otherwise the tool MUST NOT use it and MUST report the mismatch. The fingerprint of a pinned version is the first 16 hexadecimal digits of the pin, so a pin also checks references that carry a fingerprint.
+- `fetch: true` enables fetching, and is honoured only in the user catalog.
+
+Tools find catalogs in this order:
+1. catalogs named explicitly (`--catalog FILE`, or `NOVA_CATALOG`, a path list);
+2. the **project catalog**: the nearest file named `nova-catalog.nova` in the directory of the document being processed or a directory above it;
+3. the **user catalog**: `nova/catalog.nova` in the platform's user configuration directory (`$XDG_CONFIG_HOME` on Unix-like systems).
+
+A tool given no catalog at all MAY instead scan the workspace for `.novs` files, as the language server does.
+
+**Lookup order.** Given a reference `name@W[#fp]`, from `@schema`, a frame header or a NOVA Lines header, a tool looks in these places in order, and stops at the first place that has a **candidate**: a schema with that name that can read version W under the compatibility contract (§6.7).
+
+1. **An explicit schema** (`--schema FILE`, an API argument) is used as it is and checked against the reference as §6.7 requires. Nothing below applies.
+2. **Built-in schemas.** Implementations MUST bundle `novafile.dev/meta/schema` and `novafile.dev/meta/catalog` in the versions they implement. A catalog source MUST NOT shadow a bundled version: a file that declares a bundled `name@version` with a different revision is an error.
+3. **Catalog sources**, in the order in which the catalogs and their `schemas` entries are listed.
+4. **The fetch cache**: versions fetched earlier.
+5. **The network**, only as described under **Fetching** below.
+
+Within one place, if the reference carries a fingerprint and there is a candidate of version W with that fingerprint, it is chosen. Otherwise the candidate with the highest precedence is chosen; build metadata does not take part. The chosen schema is then checked against the reference as §6.7 requires.
+
+**Conflicts.** Two files reachable through steps 2 and 3 that declare the same `name@version` with different canonical text are a conflict. A tool MUST report it, naming both files, and MUST NOT pick one.
+
+**Default location.** A qualified name has a conventional location for each version, `https://{name}/{version}.novs`: `acme.example/billing/invoice@2.1.0` is at `https://acme.example/billing/invoice/2.1.0.novs`. The location is a convention for publishers who want one, not a property of the name, and a catalog `remote` entry overrides it. Publishers SHOULD serve each version at its default location, MAY serve a human-readable overview at `https://{name}/`, and MUST NOT change the content served for a version once published. Serving the JSON Schema rendering (§11.2) at `https://{name}/{version}.schema.json` is RECOMMENDED.
+
+**Fetching.** Parsers MUST NOT fetch from `@schema` references (§4.2). A tool MAY fetch a schema only
+
+- when the user enabled it: by a command-line flag (`nvf validate --fetch`), by `NOVA_FETCH=1`, or by `fetch: true` in the user catalog. A project catalog, which arrives with a cloned repository, cannot enable fetching;
+- for qualified names outside the special-use domains of §6.7, never for a bundled version, and only for exactly version W;
+- over HTTPS, following redirects only to HTTPS URLs, with a bound on the response size.
+
+A fetched file MUST be a named schema whose `@schema` line declares exactly the requested `name@W`. If the reference carries a fingerprint, or a catalog pins that version, the fetched schema MUST match them. A fetched schema that fails any of these checks MUST be discarded, and the failure reported. Fetched schemas are stored in a user-level cache keyed by `name@version` and revision. Versions are immutable, so a cached version is never fetched again, and a different revision for a cached version is a conflict. Tools SHOULD offer to record the revision of a newly fetched version as a pin in the project catalog: trust on first use, then pinned.
+
+**Fingerprints and pins.** References carry the short fingerprint (§6.6), because they are written into every document and frame header, and 64 bits detect accidental mismatches and edits. Pins carry the full revision, because they are written once per project and protect against deliberate substitution. Neither is a signature: both say "this is the content I expect", not who published it.
+
+**Command line.** The reference CLI provides `nvf schema resolve REF [--fetch]`, which prints where a reference resolves from (built-in, catalog file, cache, URL), its version and revision, or why it does not resolve; `nvf schema fetch REF [--pin]`, which fetches exactly that version into the cache and optionally pins it in the project catalog; and `nvf validate FILE`, which without `--schema` looks up the document's reference as above.
 
 ---
 
@@ -1329,6 +1430,17 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
   - Anything outside I-Regexp (`\d`, lookahead, backreferences, flags) is reported as not enforced.
   - A string `"const"` becomes a literal. A string `"enum"` becomes an enum when every value is an identifier, and otherwise a union of literals.
 
+Schema names (§6.7) map as follows:
+- *Writing:*
+  - A qualified name gets `"$id": "https://{name}/{version}.schema.json"`, without the fingerprint, since a JSON Schema `$id` must not carry a non-empty fragment.
+  - A local name gets no `$id`, since it has no global identity.
+  - Every named schema gets `"x-nova-schema": "name@version"` and a `title`.
+- *Reading:*
+  - `"x-nova-schema"` wins when present.
+  - Otherwise an `https://` `$id` whose host and path, lowercased, form a valid qualified name gives that name. A trailing `/{version}.schema.json` or `/{version}.json`, where the version is valid SemVer, gives the version; any other trailing `.json` stays in the name, so `https://json.schemastore.org/package.json` becomes `json.schemastore.org/package.json`.
+  - The legacy `$id` form `urn:nova:name@version` is still read.
+  - Anything else falls back to `title`, then to names given on the command line.
+
 **Protobuf (proto3).** Protobuf requires a schema; `novafile-proto` derives it from a NOVA schema:
 - `@root` MUST name a record type, which becomes the top-level message;
 - every record field MUST carry `@id(n)`, which becomes its field number;
@@ -1337,7 +1449,8 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
 - enums with payloads become messages with a `oneof`;
 - a variant's `@id` becomes its proto enum value number or its `oneof` field number; without `@id`, variants are numbered by position starting at 1;
 - timestamps and durations use the well-known types; decimals, rationals and literal types are strings;
-- optional fields, nullable types and fields with defaults become `optional`.
+- optional fields, nullable types and fields with defaults become `optional`;
+- the `package` comes from the schema name and its major version. For a qualified name, the host labels are reversed and each path segment becomes a component: `acme.example/billing/invoice@2.1.0` becomes `example.acme.billing.invoice.v2`. Within a component, every character outside `[A-Za-z0-9_]` becomes `_`, and a component that starts with a digit gets a leading `_`. A local name becomes one component in the same way, followed by `.vMAJOR`.
 
 Values are resolved against the schema before encoding and validated after decoding, so `@len`, `@pattern` and literal types, which Protobuf cannot express, are still enforced. Features Protobuf cannot express are rejected with an error naming the definition and field: tuples, `any`, unions, nested repeated values, nullable collections, collection fields (list, set or map) with a default (proto3 writes an empty collection as nothing, so it would decode as the default), field names that are not Protobuf identifiers (such as quoted names like `"at start"`), non-scalar map keys and so on.
 
@@ -1393,7 +1506,7 @@ Both bindings read each other's output.
 - **Resource limits.** Parsers and decoders MUST bound nesting depth and SHOULD bound input size, the string-table size (§5.3) and template output (§9.5). Element counts in binary input are checked against the remaining length before any allocation.
 - **Duplicate keys** are rejected everywhere, which prevents parser-differential attacks in which two components see different values.
 - **Canonicalization** gives one revision per value, so signatures and hashes over the canonical encoding are not malleable by reordering or re-spelling.
-- **Schemas are never fetched** automatically from `@schema` references.
+- **Schemas are never fetched** automatically from `@schema` references. Tools MAY fetch them when the user has enabled it (§6.9), only over HTTPS and only for qualified names outside the special-use domains, and MUST check fetched schemas against the reference's fingerprint and the catalog's pins. A project catalog cannot enable fetching.
 - **Patterns.** Implementations MUST evaluate `@pattern` in time linear in the length of the string for a given pattern (for example with an automaton-based matcher), and MUST NOT pass schema patterns to a backtracking engine without such a guarantee. They SHOULD bound the size of a pattern and of its compiled form, and reject schemas that exceed the bound.
 - **Patch scope** limits what an automated agent can change. Hosts SHOULD bind scopes per tool call for untrusted agents.
 - **Unicode.** NOVA does not normalize strings. Applications that compare identifiers from different sources SHOULD normalize them (for example to NFC) themselves, and SHOULD be aware of confusable characters in keys.
@@ -1427,6 +1540,7 @@ NOVA has three versioned layers, which evolve independently:
 | **Text writer** | §4.10: output re-parses to an equal value; canonical spellings for the canonical profile. |
 | **Binary implementation** | §5. |
 | **Schema implementation** | §6.1–6.4 (resolution performs exactly the listed conversions) and §6.7 (SemVer versions and the compatibility contract). §6.5–6.6 are RECOMMENDED. |
+| **Schema catalog** | §6.9: catalogs, the lookup order, conflicts and pins, and the fetching rules if it fetches. |
 | **Patch host** | §7.1–7.5, including atomicity and conflict reporting. |
 | **Template renderer** | §9, including the output budget and import restrictions. |
 | **Editor** | Document-preserving fidelity (§3) for regions it does not intend to change. |
@@ -1541,7 +1655,13 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
     - an informational "this pattern change only widens" note in `nvf schema check`, never affecting the classification;
     - a `[?name ~ "pattern"]` query filter (§7.1) in the same dialect;
     - patterns over `bytes`, which need a byte-oriented dialect that I-Regexp does not define.
-14. **Schema names and catalogs.** Globally unique schema names without a registry (DNS-rooted names such as `acme.example/billing/invoice`, owned through their domain), local catalogs (`nova-catalog.nova`) that map names to files, opt-in fetching with fingerprint and revision pins, the reserved `novafile.dev/` namespace, and the meta-schema renamed to `novafile.dev/meta/schema`, are proposed in [proposals/0005-schema-names-and-catalogs.md](proposals/0005-schema-names-and-catalogs.md).
+14. **Beyond schema names and catalogs** (§6.7, §6.9, from [proposals/0005-schema-names-and-catalogs.md](proposals/0005-schema-names-and-catalogs.md)):
+    - signed schemas, with keys published under `https://{host}/.well-known/…`, since pins check content and not authorship;
+    - a version listing (`https://{name}/versions.nova`), so that tools can find the newest version of a name;
+    - a registered media type for `.novs` and `.nova` files;
+    - imports between schemas, resolved with the lookup order of §6.9;
+    - a curated `novafile.dev/community/…` namespace for standards whose owners publish no NOVA schemas;
+    - a proxy or mirror protocol, for which a catalog `remote` entry with an empty prefix would be the hook.
 15. **Template expressions, functions and a standard library.** Comparisons and arithmetic, list and record comprehensions, non-recursive user functions (`@def`), 40 built-in functions with locale-free, Unicode-pinned semantics (`lower`, `upper`, `trim`, `replace`, `split`, `join`, `slice`, `matches`, `sort`, `merge`, `revision`, `to_json`, …), an exactly counted step budget, and a defined iteration order for records, maps and sets, as template language 0.2, are proposed in [proposals/0006-template-expressions-and-functions.md](proposals/0006-template-expressions-and-functions.md). The language stays deliberately non-Turing-complete.
 
 ---
@@ -1555,7 +1675,7 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
 | Record keys and schema field names | `snake_case` |
 | Enum variant tags | `snake_case` (`!active`, `!failed(…)`) |
 | Schema definition names | `PascalCase` (enforced by the schema grammar, §6.1) |
-| Schema names | lowercase with `-_./` (enforced, §6.7) |
+| Schema names | qualified (`domain/path`) for schemas shared beyond one project; local names otherwise (grammar enforced, §6.7) |
 | Field identities | every field of a record has `@id`, or none does (for enum variants this is a schema rule, §6.1) |
 
 Exceptions are explicit:
@@ -1576,6 +1696,9 @@ Documents that declare `@schema` take their names from the schema, so naming rul
 | `field-case` / `variant-case` | warning | schema field and variant names; quoted field names are exempt, since they exist for external contracts | — |
 | `union-order` | warning | union members that an earlier member makes unreachable or captures values from, including literals an earlier member accepts (§6.5) | — |
 | `pattern-anchor` | warning | a `@pattern` that starts with `^` or ends with `$`, which I-Regexp matches as literal characters, so `"^[a-z]+$"` only matches strings that begin with `^` | — |
+| `schema-name-version` | warning | the last segment of a schema name looks like a version (`v2`, `2`, `2.1`); versions belong after `@` (§6.7) | — |
+| `schema-name-reserved` | warning | a schema declares a `novafile.dev/` name that this specification does not define | — |
+| `unpinned-fetch` | hint | the project catalog has `remote` entries, but a version fetched for the project has no pin (§6.9) | add the pin |
 | `partial-ids` | warning | records where only some fields have `@id`. An enum where only some variants have `@id` is not linted: it is an invalid schema (attribute table, §6.1) | — |
 
 Fixes are text edits at source spans, so comments and layout are preserved. `nvf convert` from JSON, YAML or TOML into NOVA text adds the matching `@compat` directive.

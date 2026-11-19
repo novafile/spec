@@ -1,0 +1,9 @@
+@schema nova-schema@0.3.2
+name: legacy
+version: 1.0.0
+root: {kind: !named, ref: R}
+defs:
+  - name: R
+    record:
+      fields:
+        - {name: x, type: {kind: !int}}
