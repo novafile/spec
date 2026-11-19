@@ -1474,6 +1474,7 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
     - sidecar patch logs;
     - a TUI browser and editor.
 12. **Quoted variant tags.** Variant tags are identifiers (§2.11), so an enum cannot model keys such as `=`, `>=` or `at start` as variants; a union of single-field records (§6.1) is the current way to express them. Allowing quoted tags (`!"at start"(…)`) in the value model would let such operators become enum variants with `@id`s. The binary encoding (§5.1) and the JSON mapping (§11.1) already carry tags as strings; the text syntax, interpolation (§9.3) and the conventions (Appendix E) would change.
+13. **String patterns and literal types.** A `@pattern("…")` string constraint (I-Regexp, RFC 9485, whole-string match) next to `@range` and `@len`, string literal types such as `"total-time"`, and `@x-lint` settings in schemas are proposed in [proposals/0004-string-patterns-and-literal-types.md](proposals/0004-string-patterns-and-literal-types.md).
 
 ---
 
