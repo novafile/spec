@@ -4,6 +4,6 @@
     "port"
   ],
   "messages": [
-    "null is not a u16 (a present null does not receive the default)"
+    "expected u16, found null"
   ]
 }
