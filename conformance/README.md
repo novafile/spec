@@ -61,7 +61,7 @@ A minimal runner for another implementation:
 
 - **Text syntax (§4):** scalars and the strict number grammar, rationals, typed literals including ISO 8601 durations, quoted and block strings, nested records and lists, flow values, tuples, sets, maps, variants with flow and block payloads, tables (dense and sparse), comments, directives, and every MUST-reject rule exercised by the reference parser.
 - **Binary (§5):** canonical encodings of all valid text cases, plus non-canonical encodings that decoders must accept and malformed inputs that they must reject.
-- **Schemas (§6):** lossless conversions, exact numeric `@range` (the binary64 value nearest 0.1 lies above the decimal bound 0.1), `@len` units, closed and `@open` records, `@key` uniqueness, `{tag: payload}` variants, and SemVer release checks.
+- **Schemas (§6):** lossless conversions, exact numeric `@range` (the binary64 value nearest 0.1 lies above the decimal bound 0.1), `@len` units, closed and `@open` records, `@key` uniqueness, `{tag: payload}` variants, ordered unions and quoted field names, and SemVer release checks (including union evolution). The valid `schema/unions/` cases have no expectations yet; they are generated once the reference implementation supports unions.
 - **Paths, queries and patches (§7).**
 - **Templates (§9),** including the output budget.
 - **Record streams (proposal 0002):** NOVA Lines value, table (nested and rest columns, literal cells) and positional modes, comments, segments from concatenation, end markers, `@key` uniqueness, header errors; binary streams with batches, unknown META frames, corrupt and truncated frames.

@@ -1,0 +1,27 @@
+# Unions and quoted field names (spec §6.1, §6.3).
+@schema unions@1.0.0
+@root Problem
+
+type Formula = Atom | And | Not | Eq | AtStart
+type Term = string | int
+type Atom = list<Term>
+
+record And:
+  and: Formula[]
+
+record Not:
+  not: Formula
+
+record Eq:
+  "=": (Term, Term)
+
+record AtStart:
+  "at start": Formula
+
+record Problem:
+  goal: Formula
+  types?: map<string, string | string[]>
+  stamp?: timestamp | string
+  level?: u8 @range(1..) | string @len(1..)
+  port: u16 = 80
+  note?: string?

@@ -1,0 +1,5 @@
+@schema unions@1.0.0
+@root R
+
+record R:
+  v: u8 | decimal

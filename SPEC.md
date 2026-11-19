@@ -613,6 +613,7 @@ record Infrastructure:
 ```
 
 - Definition names start with an uppercase letter. Fields are indented exactly two spaces.
+- A field name is an identifier or a quoted string (§4.6), exactly like a record key in a document (§4.3): `"at start": Formula`, `">="?: (Term, Term)`. A field whose name is not an identifier MUST NOT carry `@key`, because keyed selectors (§7.1) name key fields by identifier. Enum variant names remain identifiers, since variant tags are identifiers in the value model (§2.11).
 - `@root` takes any type from the table below, for example a definition (`@root Infrastructure`) or a list (`@root Service[]`).
 - A field line is `name[?]: type attributes* [= default]`, where the default is a flow value.
 - A variant is `name[(type)] attributes*`, on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
@@ -630,6 +631,7 @@ record Infrastructure:
 | `map<K, V>` | map |
 | `(A, B, …)` | tuple |
 | `T?` | `T` or `null` (nullable) |
+| `A \| B \| …` | a union: a value of any of the member types (below) |
 | `Name` | a `record`, `enum` or `type` definition |
 
 `name?:` (an optional field, which may be absent) and `T?` (a nullable type, where the field is present but may be `null`) are independent. Together they describe the four shapes a field can take, including the three states JSON can express:
@@ -642,6 +644,34 @@ record Infrastructure:
 | `x?: T?` | yes | yes | yes |
 
 A binding whose native type has only two states (Rust's `Option<T>`) maps to `x?: T?` and chooses one spelling when writing; a binding that must keep all three needs a three-state type.
+
+**Unions.** A union lists two or more member types separated by `|`. It may appear wherever a type may: as a field type, an alias (`type Entry = string | string[]`), a type argument (`list<int | string>`), a tuple element or a variant payload (`failed(string | int)`).
+- `|` binds more loosely than everything else in a type: `A | B[]` is `A | list<B>`, and `A | B?` is `A | B` where only `B` is nullable. A list of a union is written `list<A | B>`. Parentheses do not group types; they always denote a tuple.
+- A type attribute that follows a member belongs to that member: in `u8 @range(1..) | string @len(1..)` each member has its own constraint. A union as a whole takes no type attributes; field attributes (`@id`, `@deprecated`) on a field line still belong to the field.
+- Members are **ordered**: resolution tries them from left to right (§6.3). They are positional and carry no `@id` (§6.5).
+- A member that is itself a union (through an alias) behaves as if its members were listed in its place.
+- Definitions may refer to each other recursively. An alias that reaches itself without passing through a `list`, `set`, `map`, tuple, `record` or `enum` is a cycle and makes the schema invalid: `type T = list<T> | string` is valid, `type A = B | int` together with `type B = A` is not.
+
+For example, an s-expression-like formula language, where an atom is a list and an operator is a record with one field:
+
+```
+type Formula = Atom | And | Not | Eq | AtStart
+type Atom = list<string | int>
+
+record And:
+  and: Formula[]
+
+record Not:
+  not: Formula
+
+record Eq:
+  "=": (string | int, string | int)
+
+record AtStart:
+  "at start": Formula
+```
+
+Records are closed by default, so each single-field record accepts only its own key and the members never overlap.
 
 **Type arguments may carry type attributes**, e.g. `list<u16 @range(1..1024)>` or `map<string @len(1..8), int>`.
 
@@ -679,6 +709,9 @@ A binding whose native type has only two states (Rust's `Option<T>`) maps to `x?
 | `map<K, V>` | record | Keys become strings. |
 | enum type | string | Only if the string names a variant without a payload: `active` becomes `!active`. |
 | enum type | record with one field | Only if the field names a variant with a payload: `{failed: oom}` becomes `!failed(oom)`. This is how JSON and the other formats spell variants (§11). |
+| union `A \| B \| …` | anything | Resolved against each member in order; the result is that of the **first** member against which resolution succeeds (below). |
+
+A union member succeeds only if resolving the value against it reports no issue at all, including `@range` and `@len` violations inside the value. Conversions take part as usual, so the order of members can change the result: under `timestamp | string` an RFC 3339 string becomes a timestamp, under `string | timestamp` it stays a string, and the `timestamp` member is unreachable. `@key` uniqueness is a property of the enclosing list and does not take part in choosing a member; it is checked on the resolved list. `T?` resolves like `null | T`. Absence is not a value and is never a union member: whether a field may be absent is decided only by `name?:` (§6.1).
 
 Notably, resolution never converts a float to a rational or integer, a rational to a float, a number to a string, or a string to a number or boolean.
 
@@ -687,13 +720,15 @@ Notably, resolution never converts a float to a rational or integer, a rational 
 Resolving a value against a record type:
 
 1. Every present field is resolved against its declared type.
-2. A missing field with a default receives the default, during resolution only.
+2. A missing field with a default receives the default, during resolution only. A field that is present with the value `null` is not missing: it never receives the default, and it is valid only if its type admits `null`.
 3. A missing optional field stays absent.
 4. Any other missing field is an error.
 5. Unknown fields are errors unless the record is `@open`.
 6. `@range`, `@len` and `@key` constraints are checked.
 
 Implementations SHOULD report **all** violations, each with the path (§7.1) of the offending value, rather than stopping at the first.
+
+A value that resolves against no member of a union is **one** issue, at the path of that value. The issue SHOULD name the union and SHOULD include, as detail, the issues of the member that came closest (for example the first member whose kind accepts the input). Those member issues are not reported as issues of their own.
 
 **Validate** checks the same rules without producing a resolved value. **Resolve** returns the value with conversions and defaults applied. The revision of a document is computed from the document as stored, not from its resolution.
 
@@ -713,12 +748,17 @@ A new schema version is **backward compatible** with an old one if every value v
 | Add a variant | compatible (old readers reject the new variant: this is a forward-compatibility concern). In an enum without `@id`, only appending is compatible: a variant inserted before others moves them (below) |
 | Remove a variant, or change its payload incompatibly | breaking |
 | Reorder the variants of an enum whose variants carry `@id` | compatible |
+| Widen `T` to a union whose first member is `T`, or append a member to a union | compatible |
+| Insert a member before an existing one, reorder members, or remove a member | breaking: an earlier member can capture values that used to resolve to a later one, and values that matched the removed member may match nothing |
+| Widen a union member | compatible for the last member; breaking for any other, which can capture values that used to resolve to a later member |
 | Change the `@id` of a variant that is kept | breaking |
 | Move a variant of an enum without `@id` to another position | breaking (Protobuf numbers such variants by position, §11.2) |
 | Add `@key` | breaking (existing data may contain duplicates) |
 | Rename a field that keeps the same `@id` | breaking for name-based representations (all text forms); compatible only for positional or ID-based encodings |
 
-A removal from an enum without `@id` also moves every later variant. Tools SHOULD report that shift once per enum, not once per moved variant. Union members (`type T = A | B`) are positional and carry no `@id`.
+A removal from an enum without `@id` also moves every later variant. Tools SHOULD report that shift once per enum, not once per moved variant. Union members (`type T = A | B`, §6.1) are positional and carry no `@id`; their order decides resolution (§6.3).
+
+Tools SHOULD also warn, in `nvf schema check` and the language server, about union members that an earlier member makes unreachable (`string | timestamp`) and about members whose conversions capture values a later member was probably meant for (`timestamp | string`).
 
 ### 6.6 Fingerprints
 
@@ -727,6 +767,8 @@ The **canonical schema text** renders:
 1. `@schema name@version`;
 2. `@root`, with its type in long form (`@root list<Service>`);
 3. every definition, sorted by name, with fields in declared order and types in their long form (`list<T>`, not `T[]`).
+
+Field names are written bare when they are identifiers, otherwise as canonical quoted strings (§4.10). Union members keep their declared order and are separated by ` | `; a member that is an alias to a union is not expanded.
 
 The **fingerprint** is the first 16 hexadecimal digits of the revision (§2.13) of the canonical text, taken as a NOVA string value. A full **schema reference with fingerprint** is written `name@version#fingerprint`, for example `infrastructure@1.2.0#8c21a0f3d5e6b7c8`. Fingerprints are unaffected by comments and formatting.
 
@@ -762,10 +804,10 @@ In every case *new* MUST have greater precedence than *old*. A breaking release 
 
 ### 6.8 Schemas as data
 
-Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `nova-schema@0.3.0`. The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
+Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `nova-schema@0.3.1`. The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
 
 ```
-@schema nova-schema@0.3.0
+@schema nova-schema@0.3.1
 name: infrastructure
 version: 1.0.0
 root: {kind: !named, ref: Infrastructure}
@@ -789,7 +831,7 @@ defs:
   - `ref` for `named`;
   - `item` for `list` and `set`;
   - `key` and `value` for `map`;
-  - `items` for `tuple`.
+  - `items` for `tuple`, and for `union`, where it lists the members in order.
 - A variant has a `name`, and optionally a `payload` type and an `id` (its `@id`), like a field.
 - A type can also carry `nullable`, `range` (exact bounds) and `len` (with an optional `unit`).
 - Boolean flags that are false, and absent optional parts, are omitted.
@@ -797,7 +839,7 @@ defs:
 **Conversion:**
 - A schema and its descriptor convert into each other without loss: the fingerprint (§6.6) of the converted schema is unchanged.
 - An implementation MUST validate a descriptor against the meta-schema, and then apply every rule that applies to schema text: names, references, alias cycles, `@id` uniqueness and defaults.
-- The meta-schema can't express "exactly one of `record`, `enum`, `alias`"; that rule is enforced when converting a descriptor back to a schema.
+- The meta-schema can't express "exactly one of `record`, `enum`, `alias`"; that rule is enforced when converting a descriptor back to a schema. Likewise a `union` MUST have at least two `items`.
 
 **Tooling.** Tools SHOULD accept a descriptor wherever a schema is accepted. The reference CLI also loads `.novs` files as their descriptors for `get`, `diff`, `hash` and `convert`. A patched `.novs` file is written back in the schema language.
 
@@ -1426,6 +1468,7 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
     - `tree:` Merkle revisions and scoped `@expect` preconditions;
     - sidecar patch logs;
     - a TUI browser and editor.
+12. **Quoted variant tags.** Variant tags are identifiers (§2.11), so an enum cannot model keys such as `=`, `>=` or `at start` as variants; a union of single-field records (§6.1) is the current way to express them. Allowing quoted tags (`!"at start"(…)`) in the value model would let such operators become enum variants with `@id`s. The binary encoding (§5.1) and the JSON mapping (§11.1) already carry tags as strings; the text syntax, interpolation (§9.3) and the conventions (Appendix E) would change.
 
 ---
 
@@ -1456,7 +1499,7 @@ Documents that declare `@schema` take their names from the schema, so naming rul
 | `untyped-timestamp` | hint | plain strings that are RFC 3339 timestamps, in documents without a schema | wrap in `@timestamp(…)` |
 | `mixed-list` | hint | lists that mix scalar kinds | — |
 | `compat-loss` | warning | in `@compat F` documents, values that F cannot represent | — |
-| `field-case` / `variant-case` | warning | schema field and variant names | — |
+| `field-case` / `variant-case` | warning | schema field and variant names; quoted field names are exempt, since they exist for external contracts | — |
 | `partial-ids` | warning | records where only some fields have `@id`. An enum where only some variants have `@id` is not linted: it is an invalid schema (attribute table, §6.1) | — |
 
 Fixes are text edits at source spans, so comments and layout are preserved. `nvf convert` from JSON, YAML or TOML into NOVA text adds the matching `@compat` directive.

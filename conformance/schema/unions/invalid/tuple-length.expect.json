@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "goal"
+  ],
+  "messages": [
+    "matches no member of Atom | And | Not | Eq | AtStart: Eq: list of length 3 does not match a tuple of length 2"
+  ]
+}

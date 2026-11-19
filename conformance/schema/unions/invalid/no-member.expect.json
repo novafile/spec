@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "goal"
+  ],
+  "messages": [
+    "5 matches no member of Atom | And | Not | Eq | AtStart"
+  ]
+}

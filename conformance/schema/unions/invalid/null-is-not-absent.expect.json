@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "port"
+  ],
+  "messages": [
+    "null is not a u16 (a present null does not receive the default)"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "level"
+  ],
+  "messages": [
+    "0 matches no member of u8 @range(1..) | string @len(1..): 0 is outside @range(1..)"
+  ]
+}

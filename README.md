@@ -8,7 +8,7 @@ This repository is the language-neutral home of the format:
 | --- | --- |
 | [`SPEC.md`](SPEC.md) | The specification (draft 0.1) |
 | [`proposals/`](proposals/) | Design proposals that are not normative yet (tensors; streaming, massive documents and a TUI; labels and annotations) |
-| [`meta/nova-schema.novs`](meta/nova-schema.novs) | The meta-schema `nova-schema@0.3.0`, which describes schema descriptors (§6.8) |
+| [`meta/nova-schema.novs`](meta/nova-schema.novs) | The meta-schema `nova-schema@0.3.1`, which describes schema descriptors (§6.8) |
 | [`examples/`](examples/) | Example documents, a schema, a patch and a template (CC0-1.0) |
 | [`conformance/`](conformance/) | The cross-implementation test suite |
 

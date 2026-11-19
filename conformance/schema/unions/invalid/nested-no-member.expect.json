@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "goal.and[1]"
+  ],
+  "messages": [
+    "matches no member of Atom | And | Not | Eq | AtStart: AtStart: unknown field \"extra\""
+  ]
+}

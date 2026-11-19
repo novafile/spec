@@ -1,0 +1,5 @@
+@schema unions@2.0.0
+@root R
+
+record R:
+  v: int
