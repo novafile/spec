@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "union Service | Job: Service has @key (id) but Job has no @key; every record member of a keyed union keys on the same fields"
+}

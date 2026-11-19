@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "union Service | Batch: Service has @key (id) but CronJob has @key (name); every record member of a keyed union keys on the same fields"
+}

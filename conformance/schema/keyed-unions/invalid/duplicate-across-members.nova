@@ -1,0 +1,3 @@
+resources:
+  - {id: api, image: "nova:1"}
+  - {id: api, command: make}

@@ -1,0 +1,16 @@
+# Service carries @key but Job does not (spec §6.2).
+@schema keyed-unions@1.0.0
+@root Inventory
+
+type Resource = Service | Job
+
+record Service:
+  id: string @key
+  image: string
+
+record Job:
+  id: string
+  command: string
+
+record Inventory:
+  resources: list<Resource>

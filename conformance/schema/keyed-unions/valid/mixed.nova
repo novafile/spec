@@ -1,0 +1,6 @@
+resources:
+  - {id: api, image: "nova:1"}
+  - {id: build, command: make}
+  - {id: 7, schedule: "0 * * * *", command: backup}
+  - {id: "7", image: "nova:2"}
+  - a free-text note

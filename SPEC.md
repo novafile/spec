@@ -692,6 +692,11 @@ Records are closed by default, so each single-field record accepts only its own 
 
 `@key` guarantees that a selector such as `services[id=api]` (§7.1) identifies at most one element of any valid document. This is what makes keyed patches safe.
 
+**Keyed unions.** A list may hold elements of several record types through a union, for example `resources: list<Service | Job>` with `name @key` in both. To keep the guarantee:
+- If any record member of a union carries `@key`, every record member MUST carry `@key` on fields with the same names; otherwise the schema is invalid. Record members reached through an alias to a union count as members. Members that are not records (strings, lists, enums and so on) have no fields, so no keyed selector can match them; they need nothing.
+- The key fields may have different types in different members: values of different kinds are never equal (§2.12), so they cannot match the same selector. Each member's key fields remain required and non-nullable (§6.1).
+- Uniqueness is checked across the whole list: two elements conflict when their key fields are equal, whichever member each one resolved to.
+
 ### 6.3 Schema-directed resolution
 
 **Resolution** checks a value against a type and applies a fixed set of **lossless conversions**. These exist so that human documents can stay free of type markers when a schema is available. Resolution MUST perform no conversions other than those listed:
@@ -711,7 +716,7 @@ Records are closed by default, so each single-field record accepts only its own 
 | enum type | record with one field | Only if the field names a variant with a payload: `{failed: oom}` becomes `!failed(oom)`. This is how JSON and the other formats spell variants (§11). |
 | union `A \| B \| …` | anything | Resolved against each member in order; the result is that of the **first** member against which resolution succeeds (below). |
 
-A union member succeeds only if resolving the value against it reports no issue at all, including `@range` and `@len` violations inside the value. Conversions take part as usual, so the order of members can change the result: under `timestamp | string` an RFC 3339 string becomes a timestamp, under `string | timestamp` it stays a string, and the `timestamp` member is unreachable. `@key` uniqueness is a property of the enclosing list and does not take part in choosing a member; it is checked on the resolved list. `T?` resolves like `T | null`. Absence is not a value and is never a union member: whether a field may be absent is decided only by `name?:` (§6.1).
+A union member succeeds only if resolving the value against it reports no issue at all, including `@range` and `@len` violations inside the value. Conversions take part as usual, so the order of members can change the result: under `timestamp | string` an RFC 3339 string becomes a timestamp, under `string | timestamp` it stays a string, and the `timestamp` member is unreachable. `@key` uniqueness is a property of the enclosing list and does not take part in choosing a member; it is checked on the resolved list, across all members (§6.2). `T?` resolves like `T | null`. Absence is not a value and is never a union member: whether a field may be absent is decided only by `name?:` (§6.1).
 
 Notably, resolution never converts a float to a rational or integer, a rational to a float, a number to a string, or a string to a number or boolean.
 

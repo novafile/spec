@@ -1,0 +1,21 @@
+# CronJob, reached through the alias Batch, lacks the key field (spec §6.2).
+@schema keyed-unions@1.0.0
+@root Inventory
+
+type Resource = Service | Batch
+type Batch = Job | CronJob
+
+record Service:
+  id: string @key
+  image: string
+
+record Job:
+  id: string @key
+  command: string
+
+record CronJob:
+  name: string @key
+  schedule: string
+
+record Inventory:
+  resources: list<Resource>

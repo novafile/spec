@@ -1,0 +1,24 @@
+# Keyed lists of union elements (spec §6.2).
+@schema keyed-unions@1.0.0
+@root Inventory
+
+# Batch is an alias to a union, so Job and CronJob are members too.
+type Resource = Service | Batch | string
+type Batch = Job | CronJob
+
+record Service:
+  id: string @key
+  image: string
+
+record Job:
+  id: string @key
+  command: string
+
+# The key field may have another type in another member.
+record CronJob:
+  id: int @key
+  schedule: string
+  command: string
+
+record Inventory:
+  resources: list<Resource>

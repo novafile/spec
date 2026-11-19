@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "resources[1]"
+  ],
+  "messages": [
+    "duplicate @key (id)"
+  ]
+}
