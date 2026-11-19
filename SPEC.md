@@ -734,7 +734,7 @@ A value that resolves against no member of a union is **one** issue, at the path
 
 ### 6.5 Evolution
 
-A new schema version is **backward compatible** with an old one if every value valid under the old schema resolves under the new one, and every value that passes through a union resolves through the member at the same position as before (§6.3) — in other words, new readers can read old data, and read it the same way. A type that becomes a union counts as its first member: `string` → `string | int` keeps every string at position 1, `string` → `timestamp | string` moves them to position 2. Position, not overlap, is what counts, so reordering `int | string` is breaking even though no value could match both. Tools SHOULD report changes as compatible or breaking. The rules:
+A new schema version is **backward compatible** with an old one if every value valid under the old schema resolves under the new one, and every value that passes through a union resolves through the member at the same position as before (§6.3) — in other words, new readers can read old data, and read it the same way. A type that becomes a union counts as its first member: `string` → `string | int` keeps every string at position 1, `string` → `timestamp | string` moves them to position 2. Position, not overlap, is what counts, so reordering `int | string` is breaking even though no value could match both. A `null` member, including the one `T?` adds, does not count for positions: `null` matches only `null`, so moving it cannot change how any other value resolves. Tools SHOULD report changes as compatible or breaking. The rules:
 
 | Change | Classification |
 | --- | --- |
@@ -749,8 +749,8 @@ A new schema version is **backward compatible** with an old one if every value v
 | Remove a variant, or change its payload incompatibly | breaking |
 | Reorder the variants of an enum whose variants carry `@id` | compatible |
 | Widen `T` to a union whose first member is `T`, or append a member to a union | compatible |
-| Insert a member before an existing one, reorder members, or remove a member | breaking: an earlier member can capture values that used to resolve to a later one, and values that matched the removed member may match nothing |
-| Widen a union member | compatible for the last member; breaking for any other, which can capture values that used to resolve to a later member |
+| Insert a non-`null` member before an existing one, reorder non-`null` members, or remove a member | breaking: an earlier member can capture values that used to resolve to a later one, and values that matched the removed member may match nothing |
+| Widen a union member | compatible for the last member, and for making any member nullable (`A \| B` → `A? \| B`); breaking for any other, which can capture values that used to resolve to a later member |
 | Change the `@id` of a variant that is kept | breaking |
 | Move a variant of an enum without `@id` to another position | breaking (Protobuf numbers such variants by position, §11.2) |
 | Add `@key` | breaking (existing data may contain duplicates) |
