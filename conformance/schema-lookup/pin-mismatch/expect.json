@@ -1,0 +1,4 @@
+{
+  "error": "pin",
+  "message": "acme.test/a@1.0.0 from schemas/a.novs has revision sha256:e82a20aa1fdb9d68f247349b0296e005d0dce1a042baa845eba6f27255e814c7, but a catalog pins sha256:0000000000000000000000000000000000000000000000000000000000000000"
+}

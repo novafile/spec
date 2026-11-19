@@ -1,0 +1,4 @@
+{
+  "error": "conflict",
+  "message": "acme.test/a@1.0.0 is declared with different content by schemas/a.novs and schemas/b.novs"
+}
