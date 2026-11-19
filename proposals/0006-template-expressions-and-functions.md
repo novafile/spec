@@ -24,7 +24,7 @@ This proposal adds the missing power **without making the template language Turi
 
 | Facet | Recommendation |
 | --- | --- |
-| Computational power | Not Turing complete. Iteration only over values that already exist; no `while`, no `range`, no recursion, no functions as values. Every render terminates, and the work it can do is bounded by a polynomial in the input size whose degree is the template's nesting depth |
+| Computational power | Not Turing complete. Iteration only over values that already exist; no `while`, no `range`, no recursion, no functions as values. Every render terminates, and the work it can do is bounded by a polynomial in the input size whose degree is the depth of loop nesting along the call graph (§0006.7) |
 | Call syntax | `$f(args)` in value positions; `${f(args)}` in interpolations. Bare `f(x)` stays a plain string, as in every data document |
 | Operators | `or`, `and`, `not`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `+`, `-`, `*`, surrounded by whitespace. No `/` (it is the rational literal), no `%`; integer division is `div`/`mod` |
 | Numeric rules | No implicit conversion between kinds (§2.5). Integer results are checked against the portable range [−2^63, 2^64 − 1]. Floats follow IEEE 754 with no fused operations |
@@ -35,7 +35,7 @@ This proposal adds the missing power **without making the template language Turi
 | Errors | Every misuse is a render error. There is no `try`; `default`, `get` and `contains` handle the expected cases |
 | Limits | New step budget (reference: 10^7 steps), counted exactly so that every renderer accepts and rejects the same templates |
 | Iteration order | Records by key in UTF-8 byte order; sets and maps in canonical order (§2.12); lists and tuples in order |
-| Version | Template language 0.2 (`@template 0.2`). Every 0.1 template keeps its meaning, except where it iterated over a record, map or set (§0006.6) |
+| Version | Template language 0.2 (`@template 0.2`). It defines the iteration order that 0.1 left unspecified (§0006.6). The one 0.1 spelling that stops parsing is an escaped quote inside an interpolation, and it fails loudly (§0006.2.1) |
 | Rejected | Turing completeness, lambdas and higher-order functions, `range`, user recursion with a depth limit, method or pipe syntax, `try`/`catch`, locale-aware functions, regex replacement, text-level helpers |
 
 ---
@@ -84,12 +84,12 @@ An **expression** computes a value. Template language 0.2 uses one expression gr
 | Place | Example | Form |
 | --- | --- | --- |
 | A value position in the body: after `key: `, after `- `, inside a flow collection | `name: $lower($n)` | an expression that begins with `$` |
-| An interpolation in a quoted or block string | `"${lower(name)}-svc"` | `${` expression `}`; a leading `$` may be omitted |
+| An interpolation in a quoted or block string | `"${lower($name)}-svc"` | `${` expression `}`; a leading `$` may be omitted |
 | A condition | `@if $replicas > 1:` | any expression; it must evaluate to `bool` |
 | A loop source | `@for s in $sort($names):` | any expression |
 | The right-hand side of `@let`, `@def` and parameter defaults | `@let port = $base_port + 1` | any expression |
 
-**Value positions.** A plain scalar cannot begin with `$` (§4.4), so a value position that begins with `$` is unambiguously an expression, and the expression runs to the end of the value (the end of the line, or the next `,` or closing bracket in flow context). An expression that would begin with a literal is wrapped in `$( … )`:
+**Value positions.** A plain scalar cannot begin with `$` (§4.4), so a value position that begins with `$` is unambiguously an expression, and the expression runs to the end of the value: the end of the line, or, in flow context, the next `,` or closing bracket at the bracket depth where the expression began. Commas and brackets inside calls, groupings, flow collections and comprehensions belong to the expression, so `{maxUnavailable: $div($replicas, 2)}` is a record with one field. An expression that would begin with a literal is wrapped in `$( … )`:
 
 ```
 port: $base + 1            # expression
@@ -106,7 +106,9 @@ This keeps the rule of §9.2 that only `$` marks template code. A data document,
 "${lower(name)}-svc"       # call lower with the string "name": almost certainly a mistake (linted, §0006.8)
 ```
 
-An interpolation is read as an expression up to its matching `}`, before the string's own escapes apply, so quotes and braces inside it belong to the expression: `"--tags=${join($tags, ",")}"` is one string. This is how JavaScript template literals and Python 3.12 f-strings work, and it is compatible with 0.1, whose interpolations contain neither.
+An interpolation is read as an expression up to its matching `}`, before the string's own escapes apply, so quotes and braces inside it belong to the expression: `"--tags=${join($tags, ",")}"` is one string. This is how JavaScript template literals and Python 3.12 f-strings work.
+
+It is compatible with 0.1 except in one spelling. A 0.1 path may contain a quoted name or a string selector (§7.1), and inside a quoted string 0.1 writes its quotes escaped: `"${svc.\"odd key\"}"`. In 0.2 the content `svc.\"odd key\"` is read as an expression, where `\"` is not a token, so the template fails to load with a parse error instead of rendering something else. The 0.2 spelling is `"${svc."odd key"}"`. Paths of identifiers, indices and unquoted selectors, which is what 0.1 interpolations normally contain, are unchanged.
 
 The value of an interpolation must be a scalar that §9.3 allows (a string, number, bool, timestamp, duration or unit variant), and is inserted as its canonical text.
 
@@ -376,13 +378,15 @@ Proposed rule, for `@for`, comprehensions, `keys`, `values`, `join` and every ot
 
 Author order would read more naturally, but it is not part of the value, cannot be relied on after a value passes through binary, a patch or another tool, and §2.10 only says implementations SHOULD keep it. A template that needs a specific order iterates over a list.
 
-This is the one place where the meaning of existing syntax changes. Under §13.1, template language 0.2 is a new minor version, and while the major version is 0 a renderer accepts only its own minor version, so a 0.1 template keeps rendering with a 0.1 renderer until its author declares 0.2.
+Canonical order is the byte order of canonical encodings (§2.12), not numeric or alphabetical order. A set of ints iterates in zigzag-varint order, so `@set[64, 63, -64]` yields `63, -64, 64`, and shorter strings come before longer ones. Where people read the result, iterate over `$sort($xs)`.
+
+This does not change the meaning of any 0.1 template: 0.1 left the order unspecified, so no 0.1 template could rely on one, and 0.2 only defines it. It does change what a given renderer produces, and that includes templates without a version: §13.1 reads an undeclared `@template` as the newest version the renderer implements, so such templates get the defined order as soon as their renderer implements 0.2. Templates that must render byte-identically across that upgrade SHOULD declare `@template 0.1` and move to 0.2 deliberately.
 
 ---
 
 ## 0006.7 The step budget
 
-The output budget (§9.5) bounds what a render **produces**. It does not bound work that produces nothing: `$len([for a in $xs: [for b in $xs: [for c in $xs: $a]]])` returns one integer after |xs|³ iterations, and a chain of n `@def`s that each call the previous one twice does 2^n calls. A renderer MUST therefore also enforce a **step budget** (reference default: 10^7 steps). Exceeding it is an error.
+The output budget (§9.5) bounds what a render **produces**. It does not bound work that produces nothing: `$len([for a in $xs: [for b in $xs: [for c in $xs if $c != $c: $a]]])` builds only |xs|² empty lists but runs |xs|³ iterations, and a chain of n `@def`s that each call the previous one twice does 2^n calls. A renderer MUST therefore also enforce a **step budget** (reference default: 10^7 steps). Exceeding it is an error.
 
 So that every renderer accepts and rejects exactly the same templates, steps are counted exactly:
 
@@ -394,7 +398,7 @@ So that every renderer accepts and rejects exactly the same templates, steps are
 | a call of a `@def` | 1 (plus the steps of its body) |
 | a call of a built-in | 1, plus 1 per element, field or entry of each collection argument and of a collection result, plus 1 per started 64 bytes of the UTF-8 (or octets) of each string or bytes argument and result |
 
-References, literals and interpolations cost no steps of their own. The output budget (§9.5) is clarified at the same time: it counts every value an expression constructs, including intermediate values (a comprehension inside `len`) that never reach the output, so that it also bounds memory. Short-circuited operands are not evaluated and cost nothing. The budget is per render, including the rendering of imports.
+References, literals and interpolations cost no steps of their own. The output budget (§9.5) is clarified at the same time: it also counts the elements, fields and entries of every collection an expression constructs, including intermediate collections (a comprehension inside `len`) that never reach the output, so that it also bounds memory. A scalar result of an operator or a call is not a node until it is placed in a collection or in the output. This keeps the two budgets apart: a render that builds no collections, such as a chain of `@def`s over integers, can only exceed the step budget. Short-circuited operands are not evaluated and cost nothing. The budget is per render, including the rendering of imports.
 
 The limit is a safety net, not a design element: ordinary templates use a few thousand steps. 10^7 lets a render take at most a fraction of a second in the reference implementation. A host MAY lower or raise the budget, like the output budget.
 
@@ -520,7 +524,7 @@ New directories under `conformance/template/`, each with `template.nova`, `args.
 | Case | Shows | Expected |
 | --- | --- | --- |
 | `case-mapping` | `upper("straße")`, `lower("ΣΑΣ")`, `lower("İ")`, `upper("ǆ")` | `STRASSE`, `σας`, `i̇`, `Ǆ` |
-| `trim-unicode` | `trim` with U+00A0, U+2003 and U+3000 around a word; U+200B (not `White_Space`) stays | the word; `"x"` |
+| `trim-unicode` | `trim("\u{A0}\u{2003}x\u{3000}")`, and `trim("\u{200B}x\u{200B}")`, where U+200B is not `White_Space` | `"x"`, and `"\u{200B}x\u{200B}"` unchanged |
 | `split-join` | `split("a,,b", ",")`, `split("", ",")`, `join` of ints and a timestamp | `[a, "", b]`, `[""]`, canonical texts |
 | `replace-empty` | `replace($s, "", x)` | error |
 | `slice-truncate` | a 70-character name cut to 63, then `trim_suffix` of `-` | 62 characters |
@@ -530,7 +534,7 @@ New directories under `conformance/template/`, each with `template.nova`, `args.
 | `comprehension-duplicate-key` | a record comprehension producing a key twice | error |
 | `operator-whitespace` | `$x-1` with a parameter `x-1`, and `$x - 1` | the parameter's value, and the difference |
 | `mixed-kind-arithmetic` | `$i + 1.0` with `i: int` | error |
-| `int-portable-range` | `18446744073709551615 + 1` | error |
+| `int-portable-range` | `$(18446744073709551615 + 1)` | error |
 | `floor-mod` | `div(-7, 2)`, `mod(-7, 2)`, `round(-2.5)` | `-4`, `1`, `-3` |
 | `compare-kinds` | `1 < "2"` | error |
 | `def-block` | a block `@def` with `@if` in its body, called twice with different arguments | two records |
@@ -539,7 +543,7 @@ New directories under `conformance/template/`, each with `template.nova`, `args.
 | `def-argument-no-conversion` | passing `"80"` to a `u16` parameter | error |
 | `def-shadows-builtin` | a `@def lower(s: string)` | the `@def` is called |
 | `step-budget` | 30 `@def`s, each calling the previous twice | error: step budget |
-| `nested-comprehension-budget` | three nested comprehensions over 300 elements whose filters reject everything, so that they build no values | error: step budget |
+| `nested-comprehension-budget` | three nested comprehensions over 300 elements, only the innermost with a filter that rejects everything: 90,300 nodes (under the output budget) but more than 2.7 × 10^7 steps | error: step budget |
 | `intermediate-output-budget` | `len` of a comprehension that builds 2 × 10^6 elements | error: output budget |
 | `interpolation-call` | `"${lower($name)}-svc"` and `"${name}"` | both interpolated |
 | `revision-checksum` | `revision` of two equal records written in different key order | equal strings |
@@ -565,7 +569,7 @@ The proposed changes to SPEC.md, in summary:
 - **§9.5**: replace "no user-defined functions, no recursion, no arithmetic" with "no recursion (a function can call only built-ins and functions defined above it), no functions as values, no I/O other than host-mediated imports, and iteration only over existing values". Add the step budget of §0006.7 as a third limit.
 - **§9.7**, "Total": "Templates have no recursion and no unbounded iteration, have a bounded output and a bounded amount of work, and terminate by construction."
 - **§12**, Resource limits: "…and template output and evaluation steps (§9.5)". New bullet: "**Template functions** have no access to time, randomness, the environment, files or the network; `matches` is subject to the pattern rule above."
-- **§13.1**: the template language becomes 0.2. **§13**, Template renderer: "§9, including the output and step budgets, import restrictions, and the standard library with Unicode 17.0.0 data".
+- **§13.1**: the template language becomes 0.2. The rule "minor versions may only *add* syntax" gets an exception while the major version is 0, which is already why minor versions must match exactly then: "While the major version is 0, a minor version MAY make existing syntax invalid, provided that a document using it fails to load rather than changing its value." The interpolation change of §0006.2.1 is the only such case in 0.2. **§13**, Template renderer: "§9, including the output and step budgets, import restrictions, and the standard library with Unicode 17.0.0 data".
 - **Appendix A**: replace `cond`/`unary` with the expression grammar below, and add `@def` to the directives.
 - **Appendix E**: the lints of §0006.8.
 
@@ -585,7 +589,8 @@ atom        = flow-value                                 ; literals; may contain
             | "{for" WS for-head ":" WS expr ":" WS expr "}"
 for-head    = [identifier "," WS] identifier WS "in" WS expr [WS "if" WS expr]
 interp      = "${" (identifier-led-expr | expr) "}"      ; a leading identifier implies "$"
-value-expr  = "$" …                                      ; an expr beginning with "$" in a value position
+value-expr  = "$" …                                      ; an expr beginning with "$" in a value position; in flow context it
+                                                         ; ends at "," or a closing bracket of the enclosing depth only
 def         = "@def" SP identifier "(" param ("," param)* ")" [":" SP type] (SP "=" SP expr NL | NL body(2))
 param       = identifier ":" SP type [SP "=" SP expr]
 ```
