@@ -1,4 +1,4 @@
 {
   "error": true,
-  "message": "variant tag \"\" is not an identifier"
+  "message": "byte 2: variant tag \"\" is not an identifier"
 }
