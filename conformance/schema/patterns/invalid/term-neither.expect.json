@@ -4,6 +4,6 @@
     "term"
   ],
   "messages": [
-    "\"#t\" matches no member of Variable | Name"
+    "\"#t\" matches no member of Variable | Name: Variable: \"#t\" does not match @pattern(\"[?][A-Za-z][A-Za-z0-9_-]*\")"
   ]
 }

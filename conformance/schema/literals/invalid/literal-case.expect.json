@@ -4,6 +4,6 @@
     "assign"
   ],
   "messages": [
-    "\"Undefined\" matches no member of \"undefined\" | int"
+    "Undefined matches no member of \"undefined\" | int"
   ]
 }
