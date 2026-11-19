@@ -1,4 +1,4 @@
-# @pattern is not valid on types that strings resolve into (proposal 0004).
+# @pattern is not valid on types that strings resolve into (§6.1).
 @schema invalid@1.0.0
 @root R
 

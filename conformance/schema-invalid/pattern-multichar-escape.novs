@@ -1,4 +1,4 @@
-# Multi-character escapes such as \d are outside I-Regexp (proposal 0004).
+# Multi-character escapes such as \d are outside I-Regexp (§6.1).
 @schema invalid@1.0.0
 @root R
 

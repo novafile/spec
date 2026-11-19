@@ -4,7 +4,7 @@
 # The meta-schema: the shape of schema descriptors (spec §6.8).
 # A schema's descriptor is ordinary NOVA data; this schema validates it,
 # including its own descriptor.
-@schema nova-schema@0.3.1
+@schema nova-schema@0.3.2
 @root Schema
 
 record Schema:
@@ -38,7 +38,7 @@ record VariantDef:
   payload?: Type @id(2)
   id?: u32 @id(3)
 
-enum Kind = any | null | bool | int | i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | float | decimal | rational | string | bytes | timestamp | duration | list | set | map | tuple | named | union
+enum Kind = any | null | bool | int | i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | float | decimal | rational | string | bytes | timestamp | duration | list | set | map | tuple | named | union | literal
 
 # `ref` names the definition for `named`; `item` is the element type of
 # lists and sets; `key`/`value` describe maps; `items` the tuple elements,
@@ -53,6 +53,8 @@ record Type:
   nullable: bool @id(7) = false
   range?: Range @id(8)
   len?: Len @id(9)
+  pattern?: string @id(10)    # an I-Regexp; only on `string`
+  literal?: string @id(11)    # the value of a `literal` type
 
 # Bounds are exact numbers: int, decimal or rational.
 record Range:

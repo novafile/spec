@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| Status | Draft proposal for discussion. Not normative until merged into SPEC.md. |
+| Status | Merged into SPEC.md (§6.1, §6.3–6.6, §6.8, §11.2, §11.3, §12, Appendices C and E) on 2026-11-19. This document keeps the rationale; SPEC.md is normative. |
 | Targets | §6.1 (types and attributes), §6.3 (resolution), §6.4 (validation), §6.5 (evolution), §6.6 (canonical text), §6.8 and `meta/nova-schema.novs` (descriptors), §11.2 (JSON Schema, Protobuf), §12 (security), Appendix E (lints), conformance suite |
 | New kinds / tags / directives | none in the value model; schema attribute `@pattern`, schema literal types, schema directives `@x-…` |
 | Date | 2026-11-19 |

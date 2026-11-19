@@ -1,4 +1,4 @@
-# Literal types take no attributes (proposal 0004).
+# Literal types take no attributes (§6.1).
 @schema invalid@1.0.0
 @root R
 

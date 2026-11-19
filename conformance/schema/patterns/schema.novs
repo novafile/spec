@@ -1,4 +1,4 @@
-# String patterns (proposal 0004 §0004.2).
+# String patterns (§6.1).
 @schema patterns@1.0.0
 @root R
 

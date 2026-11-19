@@ -1,4 +1,4 @@
-# The pattern is not an I-Regexp (proposal 0004).
+# The pattern is not an I-Regexp (§6.1).
 @schema invalid@1.0.0
 @root R
 

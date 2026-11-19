@@ -618,6 +618,7 @@ record Infrastructure:
 - A field line is `name[?]: type attributes* [= default]`, where the default is a flow value.
 - A variant is `name[(type)] attributes*`, on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
 - `#` starts a comment when it is at the start of a line or preceded by a space, outside quotes.
+- Before the first definition, a schema MAY contain extension directives whose names begin with `x-`, under the same rule as data documents (§4.2): an implementation that does not understand one MUST ignore it. Any other unknown directive makes the schema invalid. Extension directives are not part of the canonical text (§6.6) or the descriptor (§6.8). Tools that write a schema back after changing it SHOULD keep them. `@x-lint` configures the schema's own lints (Appendix E).
 
 **Types**
 
@@ -632,6 +633,7 @@ record Infrastructure:
 | `(A, B, …)` | tuple |
 | `T?` | `T` or `null` (nullable) |
 | `A \| B \| …` | a union: a value of any of the member types (below) |
+| `"text"` | a string literal type: exactly the string `text` (below) |
 | `Name` | a `record`, `enum` or `type` definition |
 
 `name?:` (an optional field, which may be absent) and `T?` (a nullable type, where the field is present but may be `null`) are independent. Together they describe the four shapes a field can take, including the three states JSON can express:
@@ -673,6 +675,21 @@ record AtStart:
 
 Records are closed by default, so each single-field record accepts only its own key and the members never overlap.
 
+**String literal types.** A quoted string (§4.6) in type position is a type whose only value is that string. It may appear wherever a type may, and is most useful as a union member:
+
+```
+type MetricExp  = "total-time" | IsViolated | FExp
+type AssignExp  = "undefined" | FExp
+type Comparator = "<" | "<=" | "=" | ">=" | ">"
+```
+
+- A literal type takes no type attributes: `@range`, `@len` and `@pattern` on a literal make the schema invalid, since the value is already fixed.
+- `"text"?` means `"text" | null`, as for every `T?`.
+- Bare words remain type names. `total-time` in type position is a reference to a definition (an invalid one, since definition names are PascalCase); the quotes are what make a literal.
+- Literals are strings only. `int @range(3..3)`, `bool` and `null` cover the other single-value cases.
+
+Literals and enums both fix a set of values, but they resolve differently. Under `enum Agg = sum | max` the input `sum` resolves to the variant `!sum` (§6.3), and tags are identifiers (§2.11). Under `type Agg = "sum" | "max"` it stays the string `sum`, and any string can be a literal: `"#t"`, `">="`, `"at start"`. Use an enum for a closed vocabulary the program itself owns, and literals when the strings belong to an external contract and must survive round trips unchanged.
+
 **Type arguments may carry type attributes**, e.g. `list<u16 @range(1..1024)>` or `map<string @len(1..8), int>`.
 
 **Attributes**
@@ -683,10 +700,26 @@ Records are closed by default, so each single-field record accepts only its own 
 | --- | --- | --- |
 | `@range(lo..hi)` | numeric types | Inclusive bounds; either side may be omitted. Bounds are exact literals: an integer, a decimal (`0.1`, `1e3`) or a rational (`1/3`). |
 | `@len(lo..hi[, unit])` | string, bytes, list, set, map, record | Inclusive length bounds. For strings, `unit` selects what is counted: `scalars` (Unicode scalar values, the default), `utf8` (bytes of the UTF-8 encoding), `utf16` (UTF-16 code units) or `graphemes` (extended grapheme clusters, Unicode UAX #29). Other kinds count bytes or elements and take no unit. |
+| `@pattern("p")` | string | The string MUST match the I-Regexp `p` as a whole (below). At most one per type. A schema whose `p` is not a valid I-Regexp is invalid. |
 | `@key` | field | Part of the record's identity: values of this record in the same list MUST differ in their key fields. Key fields MUST be required and non-nullable. |
 | `@id(n)` | field, enum variant | Stable numeric identity (n ≥ 1) for evolution checks and positional encodings. Unique per record, or per enum. Either every variant of an enum carries `@id` or none does; a schema where only some do is invalid. |
 | `@deprecated` | field | Informational. |
 | `@open` | record (after the name) | Unknown fields are accepted and preserved. Records are **closed** by default. |
+
+**Patterns.** `@pattern` takes one quoted string whose content is an **I-Regexp** (RFC 9485), and only that dialect: the subset of XSD regular expressions that maps mechanically to ECMAScript, PCRE, RE2, Go, Ruby and Rust's `regex`, so a schema means the same thing in every binding. It has no backreferences and no lookaround, so every pattern can be matched in time linear in the input (§12).
+
+```
+type Slug     = string @len(1..63) @pattern("[a-z0-9]([a-z0-9-]*[a-z0-9])?")
+type Variable = string @pattern("[?][A-Za-z][A-Za-z0-9_-]*")
+type Labels   = map<string @pattern("([a-z0-9.-]+/)?[A-Za-z0-9]([A-Za-z0-9_.-]*[A-Za-z0-9])?"), string>
+```
+
+- A string satisfies `@pattern(p)` if and only if the **whole** string, as a sequence of Unicode scalar values, matches `p` under RFC 9485 §4. There is no search mode; `.*p.*` expresses one, and `(.|\n|\r)*` crosses line breaks. No normalization is applied (§12).
+- `^` and `$` are literal characters in I-Regexp, not anchors; anchors are never needed. `.` matches any scalar except `\n` and `\r`. There are no `\d`, `\w` or `\s` (use `[0-9]` and so on), no `(?:…)`, no flags and no lazy quantifiers; `{n}`, `{n,}` and `{n,m}` are available. Case-insensitive matching is spelled out with classes (`[Aa]`).
+- `\p{…}` and `\P{…}` take Unicode general categories and follow the Unicode version of the implementation. Implementations SHOULD use a current version and document it.
+- The pattern passes through two layers of syntax: NOVA string escapes (§4.6), then I-Regexp. A regex backslash is written `\\` inside the quotes; classes avoid most of that (`[?]` rather than `\\?`, `[.]` rather than `\\.`, `-` first or last in a class).
+- `@pattern` applies to `string` only, including type arguments (`map<string @pattern(…), V>`) and union members. It is not valid on `bytes`, nor on types that a string resolves *into* (`timestamp`, `decimal`, enums, …), whose syntax §6.3 already fixes.
+- `@pattern` combines with `@len`; both must hold, in either order.
 
 ### 6.2 `@key` and selectors
 
@@ -714,9 +747,12 @@ Records are closed by default, so each single-field record accepts only its own 
 | `map<K, V>` | record | Keys become strings. |
 | enum type | string | Only if the string names a variant without a payload: `active` becomes `!active`. |
 | enum type | record with one field | Only if the field names a variant with a payload: `{failed: oom}` becomes `!failed(oom)`. This is how JSON and the other formats spell variants (§11). |
+| string literal `"text"` | string | Only if the string equals `text`, scalar by scalar (§2.12). No conversion applies: the number `5` does not match `"5"`, and the result is the string itself. |
 | union `A \| B \| …` | anything | Resolved against each member in order; the result is that of the **first** member against which resolution succeeds (below). |
 
-A union member succeeds only if resolving the value against it reports no issue at all, including `@range` and `@len` violations inside the value. Conversions take part as usual, so the order of members can change the result: under `timestamp | string` an RFC 3339 string becomes a timestamp, under `string | timestamp` it stays a string, and the `timestamp` member is unreachable. `@key` uniqueness is a property of the enclosing list and does not take part in choosing a member; it is checked on the resolved list, across all members (§6.2). `T?` resolves like `T | null`. Absence is not a value and is never a union member: whether a field may be absent is decided only by `name?:` (§6.1).
+A union member succeeds only if resolving the value against it reports no issue at all, including `@range`, `@len` and `@pattern` violations inside the value. Conversions take part as usual, so the order of members can change the result: under `timestamp | string` an RFC 3339 string becomes a timestamp, under `string | timestamp` it stays a string, and the `timestamp` member is unreachable. `@key` uniqueness is a property of the enclosing list and does not take part in choosing a member; it is checked on the resolved list, across all members (§6.2). `T?` resolves like `T | null`. Absence is not a value and is never a union member: whether a field may be absent is decided only by `name?:` (§6.1).
+
+`@pattern` applies to values of kind `string` after resolution. Literals and patterns make union members disjoint where they would otherwise overlap: in `type Term = Variable | Name` with the patterns above, `?x` resolves through `Variable` and `truck` through `Name`, and in `"total-time" | Name` the literal must come first, because `Name` also accepts `total-time`.
 
 Notably, resolution never converts a float to a rational or integer, a rational to a float, a number to a string, or a string to a number or boolean.
 
@@ -729,7 +765,7 @@ Resolving a value against a record type:
 3. A missing optional field stays absent.
 4. Any other missing field is an error.
 5. Unknown fields are errors unless the record is `@open`.
-6. `@range`, `@len` and `@key` constraints are checked.
+6. `@range`, `@len`, `@pattern` and `@key` constraints are checked. A pattern violation is reported at the path of the string, and the message SHOULD include the pattern: `services[2].name: "Api_1" does not match @pattern("[a-z0-9]([a-z0-9-]*[a-z0-9])?")`. A map key that violates a constraint is reported at the path of the map.
 
 Implementations SHOULD report **all** violations, each with the path (§7.1) of the offending value, rather than stopping at the first.
 
@@ -756,6 +792,10 @@ A new schema version is **backward compatible** with an old one if every value v
 | Widen `T` to a union whose first member is `T`, or append a member to a union | compatible |
 | Insert a non-`null` member before an existing one, reorder non-`null` members, or remove a member | breaking: an earlier member can capture values that used to resolve to a later one, and values that matched the removed member may match nothing |
 | Widen a union member | compatible for the last member, and for making any member nullable (`A \| B` → `A? \| B`); breaking for any other, which can capture values that used to resolve to a later member |
+| Remove `@pattern` | compatible (a widening) |
+| Add `@pattern`, or change its pattern text in any way | breaking |
+| Widen a literal type to `string`, or to a `string` whose `@len` and `@pattern` the literal satisfies | compatible (a widening) |
+| Change a literal, or narrow a type to a literal | breaking |
 | Change the `@id` of a variant that is kept | breaking |
 | Move a variant of an enum without `@id` to another position | breaking (Protobuf numbers such variants by position, §11.2) |
 | Add `@key` | breaking (existing data may contain duplicates) |
@@ -763,7 +803,11 @@ A new schema version is **backward compatible** with an old one if every value v
 
 A removal from an enum without `@id` also moves every later variant. Tools SHOULD report that shift once per enum, not once per moved variant. Union members (`type T = A | B`, §6.1) are positional and carry no `@id`; their order decides resolution (§6.3).
 
-Tools SHOULD also warn, in `nvf schema check` and the language server, about union members that an earlier member makes unreachable (`string | timestamp`) and about members whose conversions capture values a later member was probably meant for (`timestamp | string`).
+Two clarifications for patterns and literals:
+- **The union rule still governs union members.** Removing a `@pattern` from a member that is not the last one can capture values that used to resolve to a later member, so it is breaking: `Variable | Name` → `string | Name` moves every name from position 2 to position 1. Widening `"a"` to `"a" | "b"` appends a member and is compatible.
+- **Pattern changes are classified by text.** Two patterns are the same if their texts are equal as strings. Equivalent spellings (`[a-z]` and `[a-z]{1}`) count as a change, and so does a strict widening (`[a-z]+` → `[a-z0-9]+`). Language inclusion between regular expressions is decidable but PSPACE-complete, and implementations would disagree on which proofs they attempt; since §6.7 makes version numbers checked claims, classification MUST NOT depend on such proofs. Tools MAY add an informational note when a change can be shown to be a widening. Whether one literal satisfies `@len` and `@pattern` is a plain match, so every tool gets the same answer.
+
+Tools SHOULD also warn, in `nvf schema check` and the language server, about union members that an earlier member makes unreachable (`string | timestamp`) and about members whose conversions capture values a later member was probably meant for (`timestamp | string`). A literal that an earlier member accepts (`string | "x"`, `Name | "total-time"`, a repeated literal) is unreachable; because a literal is one string, this is decided exactly, by resolving it against each earlier member.
 
 ### 6.6 Fingerprints
 
@@ -773,7 +817,7 @@ The **canonical schema text** renders:
 2. `@root`, with its type in long form (`@root list<Service>`);
 3. every definition, sorted by name, with fields in declared order and types in their long form (`list<T>`, not `T[]`).
 
-Field names are written bare when they are identifiers, otherwise as canonical quoted strings (§4.10). Union members keep their declared order and are separated by ` | `; a member that is an alias to a union is not expanded.
+Field names are written bare when they are identifiers, otherwise as canonical quoted strings (§4.10). Union members keep their declared order and are separated by ` | `; a member that is an alias to a union is not expanded. Type attributes are written in the order `@range`, `@len`, `@pattern`. The argument of `@pattern` and a literal type are written as canonical quoted strings, so the fingerprint changes whenever a pattern's text changes, and not when only its NOVA escaping does (`"[?]"` and `"[\u003F]"` are the same pattern). Extension directives (`@x-…`) are left out.
 
 The **fingerprint** is the first 16 hexadecimal digits of the revision (§2.13) of the canonical text, taken as a NOVA string value. A full **schema reference with fingerprint** is written `name@version#fingerprint`, for example `infrastructure@1.2.0#8c21a0f3d5e6b7c8`. Fingerprints are unaffected by comments and formatting.
 
@@ -809,10 +853,10 @@ In every case *new* MUST have greater precedence than *old*. A breaking release 
 
 ### 6.8 Schemas as data
 
-Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `nova-schema@0.3.1`. The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
+Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `nova-schema@0.3.2`. The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
 
 ```
-@schema nova-schema@0.3.1
+@schema nova-schema@0.3.2
 name: infrastructure
 version: 1.0.0
 root: {kind: !named, ref: Infrastructure}
@@ -836,15 +880,16 @@ defs:
   - `ref` for `named`;
   - `item` for `list` and `set`;
   - `key` and `value` for `map`;
-  - `items` for `tuple`, and for `union`, where it lists the members in order.
+  - `items` for `tuple`, and for `union`, where it lists the members in order;
+  - `literal` for `literal`, holding the string: `{kind: !literal, literal: "total-time"}`.
 - A variant has a `name`, and optionally a `payload` type and an `id` (its `@id`), like a field.
-- A type can also carry `nullable`, `range` (exact bounds) and `len` (with an optional `unit`).
+- A type can also carry `nullable`, `range` (exact bounds), `len` (with an optional `unit`) and `pattern` (the I-Regexp text, on `string` only).
 - Boolean flags that are false, and absent optional parts, are omitted.
 
 **Conversion:**
 - A schema and its descriptor convert into each other without loss: the fingerprint (§6.6) of the converted schema is unchanged.
 - An implementation MUST validate a descriptor against the meta-schema, and then apply every rule that applies to schema text: names, references, alias cycles, `@id` uniqueness and defaults.
-- The meta-schema can't express "exactly one of `record`, `enum`, `alias`"; that rule is enforced when converting a descriptor back to a schema. Likewise a `union` MUST have at least two `items` and carries no `nullable`, `range` or `len`; those belong to its members.
+- The meta-schema can't express "exactly one of `record`, `enum`, `alias`"; that rule is enforced when converting a descriptor back to a schema. Likewise a `union` MUST have at least two `items` and carries no `nullable`, `range`, `len` or `pattern`; those belong to its members. `pattern` is present only when `kind` is `string`, and is a valid I-Regexp. `literal` is present if and only if `kind` is `literal`, and such a type carries no `range`, `len` or `pattern`.
 
 **Tooling.** Tools SHOULD accept a descriptor wherever a schema is accepted. The reference CLI also loads `.novs` files as their descriptors for `get`, `diff`, `hash` and `convert`. A patched `.novs` file is written back in the schema language.
 
@@ -1270,6 +1315,17 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
 - Durations, tuples and variants have no registered tag and are written with loss warnings.
 - A deterministic mode implements RFC 8949 §4.2.1.
 
+**JSON Schema.** `novafile-schemars` converts NOVA schemas to JSON Schema 2020-12 and back. Patterns and literals map as follows:
+- *Writing:*
+  - `@pattern(p)` becomes `"pattern"` with `p` translated per RFC 9485 §5.3: every unescaped `.` outside a class becomes `[^\n\r]`, `^` and `$` outside classes are escaped (they are literal in I-Regexp), and the result is wrapped in `^(?:` and `)$`. Writers SHOULD also emit `"x-nova-pattern": p`, so that reading back restores the exact pattern text and thus the fingerprint.
+  - A literal becomes `{"type": "string", "const": "text"}`. A union whose members are all literals MAY become `{"type": "string", "enum": [...]}`, in member order. Writers MAY mark either with `"x-nova-kind": "literal"`, so that literals that are identifiers do not read back as an enum.
+- *Reading:*
+  - `"x-nova-pattern"` wins when present.
+  - Otherwise a `"pattern"` of the form `^(?:q)$` or `^q$`, where `q` is a valid I-Regexp that uses no anchors inside, becomes `@pattern(q)`, with every `[^\n\r]` turned back into `.`.
+  - A pattern that is not anchored at both ends is a search, and becomes `@pattern("(.|\n|\r)*(q)(.|\n|\r)*")`, with the corresponding end dropped if only one end is anchored.
+  - Anything outside I-Regexp (`\d`, lookahead, backreferences, flags) is reported as not enforced.
+  - A string `"const"` becomes a literal. A string `"enum"` becomes an enum when every value is an identifier, and otherwise a union of literals.
+
 **Protobuf (proto3).** Protobuf requires a schema; `novafile-proto` derives it from a NOVA schema:
 - `@root` MUST name a record type, which becomes the top-level message;
 - every record field MUST carry `@id(n)`, which becomes its field number;
@@ -1277,10 +1333,10 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
 - enums with only unit variants become proto enums with a zero `…_UNSPECIFIED` value;
 - enums with payloads become messages with a `oneof`;
 - a variant's `@id` becomes its proto enum value number or its `oneof` field number; without `@id`, variants are numbered by position starting at 1;
-- timestamps and durations use the well-known types; decimals and rationals are strings;
+- timestamps and durations use the well-known types; decimals, rationals and literal types are strings;
 - optional fields, nullable types and fields with defaults become `optional`.
 
-Values are resolved against the schema before encoding and validated after decoding. Features Protobuf cannot express are rejected with an error naming the definition and field: tuples, `any`, unions, nested repeated values, nullable collections, non-scalar map keys and so on.
+Values are resolved against the schema before encoding and validated after decoding, so `@len`, `@pattern` and literal types, which Protobuf cannot express, are still enforced. Features Protobuf cannot express are rejected with an error naming the definition and field: tuples, `any`, unions, nested repeated values, nullable collections, non-scalar map keys and so on.
 
 ### 11.3 Language bindings
 
@@ -1289,6 +1345,7 @@ Bindings map NOVA kinds to native types. They SHOULD follow these rules:
 - **The native type acts as a schema.** When the target type is known — a timestamp, a decimal, an enum — a binding SHOULD accept the string spellings that §6.3 would resolve, and nothing else. So a schema-free document with `at: 2026-11-17T16:00:00Z` deserializes into a timestamp field.
 - **Enums map to variants.** A binding SHOULD accept the variant itself, a string naming a unit variant, or a single-entry record `{tag: payload}`. The last form lets data that passed through JSON still deserialize.
 - **No lossy narrowing.** A rational, decimal or out-of-range integer MUST NOT be silently converted to a float or a narrower integer. Bindings MAY offer explicit, opt-in adapters.
+- **Patterns and literals.** A binding SHOULD check `@pattern` when constructing or deserializing a constrained string (in Rust, a newtype). String literal types map to string-literal types where the language has them (TypeScript), and a union of literals otherwise to an enum whose variants serialize as the strings (Rust: `#[serde(rename = "…")]`).
 - **Errors carry paths.** Errors SHOULD report the path (§7.1) of the offending value, e.g. `services[1].port: invalid value: integer 70000, expected u16`.
 
 **Rust / Serde (reference binding, `novafile-serde`):**
@@ -1334,6 +1391,7 @@ Both bindings read each other's output.
 - **Duplicate keys** are rejected everywhere, which prevents parser-differential attacks in which two components see different values.
 - **Canonicalization** gives one revision per value, so signatures and hashes over the canonical encoding are not malleable by reordering or re-spelling.
 - **Schemas are never fetched** automatically from `@schema` references.
+- **Patterns.** Implementations MUST evaluate `@pattern` in time linear in the length of the string for a given pattern (for example with an automaton-based matcher), and MUST NOT pass schema patterns to a backtracking engine without such a guarantee. They SHOULD bound the size of a pattern and of its compiled form, and reject schemas that exceed the bound.
 - **Patch scope** limits what an automated agent can change. Hosts SHOULD bind scopes per tool call for untrusted agents.
 - **Unicode.** NOVA does not normalize strings. Applications that compare identifiers from different sources SHOULD normalize them (for example to NFC) themselves, and SHOULD be aware of confusable characters in keys.
 
@@ -1474,7 +1532,12 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
     - sidecar patch logs;
     - a TUI browser and editor.
 12. **Quoted variant tags.** Variant tags are identifiers (§2.11), so an enum cannot model keys such as `=`, `>=` or `at start` as variants; a union of single-field records (§6.1) is the current way to express them. Allowing quoted tags (`!"at start"(…)`) in the value model would let such operators become enum variants with `@id`s. The binary encoding (§5.1) and the JSON mapping (§11.1) already carry tags as strings; the text syntax, interpolation (§9.3) and the conventions (Appendix E) would change.
-13. **String patterns and literal types.** A `@pattern("…")` string constraint (I-Regexp, RFC 9485, whole-string match) next to `@range` and `@len`, string literal types such as `"total-time"`, and `@x-lint` settings in schemas are proposed in [proposals/0004-string-patterns-and-literal-types.md](proposals/0004-string-patterns-and-literal-types.md).
+13. **Beyond string patterns and literals** (§6.1, from [proposals/0004-string-patterns-and-literal-types.md](proposals/0004-string-patterns-and-literal-types.md)):
+    - integer, boolean and `null` literal types;
+    - tuples with a rest element (`(Name, Term...)`), JSON Schema's `prefixItems` plus `items`;
+    - an informational "this pattern change only widens" note in `nvf schema check`, never affecting the classification;
+    - a `[?name ~ "pattern"]` query filter (§7.1) in the same dialect;
+    - patterns over `bytes`, which need a byte-oriented dialect that I-Regexp does not define.
 
 ---
 
@@ -1492,7 +1555,7 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
 
 Exceptions are explicit:
 - `@compat json|yaml|toml` (§4.2) marks data whose names belong to an external contract;
-- `@x-lint case=camel` (or `kebab`) selects another convention for a document;
+- `@x-lint case=camel` (or `kebab`) selects another convention for a document, or, in a schema (§6.1), for its field and variant names;
 - `@x-lint allow=rule,…` turns individual rules off.
 
 Documents that declare `@schema` take their names from the schema, so naming rules apply to the schema rather than to the document.
@@ -1506,6 +1569,8 @@ Documents that declare `@schema` take their names from the schema, so naming rul
 | `mixed-list` | hint | lists that mix scalar kinds | — |
 | `compat-loss` | warning | in `@compat F` documents, values that F cannot represent | — |
 | `field-case` / `variant-case` | warning | schema field and variant names; quoted field names are exempt, since they exist for external contracts | — |
+| `union-order` | warning | union members that an earlier member makes unreachable or captures values from, including literals an earlier member accepts (§6.5) | — |
+| `pattern-anchor` | warning | a `@pattern` that starts with `^` or ends with `$`, which I-Regexp matches as literal characters, so `"^[a-z]+$"` only matches strings that begin with `^` | — |
 | `partial-ids` | warning | records where only some fields have `@id`. An enum where only some variants have `@id` is not linted: it is an invalid schema (attribute table, §6.1) | — |
 
 Fixes are text edits at source spans, so comments and layout are preserved. `nvf convert` from JSON, YAML or TOML into NOVA text adds the matching `@compat` directive.

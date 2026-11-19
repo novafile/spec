@@ -1,4 +1,4 @@
-# At most one @pattern per type (proposal 0004).
+# At most one @pattern per type (§6.1).
 @schema invalid@1.0.0
 @root R
 

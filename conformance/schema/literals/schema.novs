@@ -1,4 +1,4 @@
-# String literal types (proposal 0004 §0004.3).
+# String literal types (§6.1).
 @schema literals@1.0.0
 @root R
 

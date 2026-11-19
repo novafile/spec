@@ -1,4 +1,4 @@
-# @pattern applies to strings only (proposal 0004).
+# @pattern applies to strings only (§6.1).
 @schema invalid@1.0.0
 @root R
 
