@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "dot"
+  ],
+  "messages": [
+    "\"a\\nc\" does not match @pattern(\"a.c\")"
+  ]
+}

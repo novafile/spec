@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "term"
+  ],
+  "messages": [
+    "\"#t\" matches no member of Variable | Name"
+  ]
+}

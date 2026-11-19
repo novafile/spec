@@ -1,0 +1,7 @@
+# Unknown directives without the x- prefix stay errors (proposal 0004 §0004.7).
+@schema invalid@1.0.0
+@lint case=kebab
+@root R
+
+record R:
+  x: string

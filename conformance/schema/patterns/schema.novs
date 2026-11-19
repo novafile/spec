@@ -1,0 +1,14 @@
+# String patterns (proposal 0004 §0004.2).
+@schema patterns@1.0.0
+@root R
+
+type Name = string @pattern("[A-Za-z][A-Za-z0-9_-]*")
+type Variable = string @pattern("[?][A-Za-z][A-Za-z0-9_-]*")
+
+record R:
+  term?: Variable | Name
+  slug?: string @len(..8) @pattern("[a-z0-9]([a-z0-9-]*[a-z0-9])?")
+  caret?: string @pattern("^[a-z]+")
+  dot?: string @pattern("a.c")
+  greek?: string @pattern("\\p{Lu}\\p{Ll}*")
+  keys?: map<string @pattern("[a-z]+"), int>

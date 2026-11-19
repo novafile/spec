@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "caret"
+  ],
+  "messages": [
+    "\"abc\" does not match @pattern(\"^[a-z]+\")"
+  ]
+}

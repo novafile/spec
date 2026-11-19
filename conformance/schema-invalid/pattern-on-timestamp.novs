@@ -1,0 +1,6 @@
+# @pattern is not valid on types that strings resolve into (proposal 0004).
+@schema invalid@1.0.0
+@root R
+
+record R:
+  x: timestamp @pattern("2026.*")

@@ -1,0 +1,5 @@
+@schema literals@1.1.0
+@root R
+
+record R:
+  v: string @pattern("[a-z-]+")

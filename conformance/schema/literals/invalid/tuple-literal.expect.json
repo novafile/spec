@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "op[0]"
+  ],
+  "messages": [
+    "\"<\" matches no member of \"=\" | \">=\""
+  ]
+}

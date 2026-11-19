@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "@pattern(\"(a)\\\\1\"): not a valid I-Regexp: backreferences are not supported"
+}

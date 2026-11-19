@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "@pattern(\"\\\\d+\"): not a valid I-Regexp: \\d is not supported"
+}

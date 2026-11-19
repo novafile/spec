@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "assign"
+  ],
+  "messages": [
+    "\"Undefined\" matches no member of \"undefined\" | int"
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "@pattern applies to string, not int"
+}

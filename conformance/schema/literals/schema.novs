@@ -1,0 +1,13 @@
+# String literal types (proposal 0004 §0004.3).
+@schema literals@1.0.0
+@root R
+
+type Name = string @pattern("[A-Za-z][A-Za-z0-9_-]*")
+enum Agg = sum | max
+
+record R:
+  metric?: "total-time" | Name
+  assign?: "undefined" | int
+  op?: ("=" | ">=", int, int)
+  both?: Agg | "sum" | "#t"
+  maybe?: "x"?

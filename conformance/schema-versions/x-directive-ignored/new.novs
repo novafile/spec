@@ -1,0 +1,6 @@
+@schema lints@1.0.1
+@x-lint case=kebab
+@root R
+
+record R:
+  v: string

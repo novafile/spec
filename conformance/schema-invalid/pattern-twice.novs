@@ -1,0 +1,6 @@
+# At most one @pattern per type (proposal 0004).
+@schema invalid@1.0.0
+@root R
+
+record R:
+  x: string @pattern("a") @pattern("b")

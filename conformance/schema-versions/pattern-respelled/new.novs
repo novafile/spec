@@ -1,0 +1,5 @@
+@schema patterns@2.0.0
+@root R
+
+record R:
+  v: string @pattern("\\?x")

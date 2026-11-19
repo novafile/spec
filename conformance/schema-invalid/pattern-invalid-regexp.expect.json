@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "@pattern(\"(a\"): not a valid I-Regexp: unclosed group"
+}

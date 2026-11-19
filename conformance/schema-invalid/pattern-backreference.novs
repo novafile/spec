@@ -1,0 +1,6 @@
+# Backreferences are outside I-Regexp (proposal 0004).
+@schema invalid@1.0.0
+@root R
+
+record R:
+  x: string @pattern("(a)\\1")

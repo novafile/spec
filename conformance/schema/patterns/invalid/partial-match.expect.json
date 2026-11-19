@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "slug"
+  ],
+  "messages": [
+    "\"ab_c\" does not match @pattern(\"[a-z0-9]([a-z0-9-]*[a-z0-9])?\")"
+  ]
+}

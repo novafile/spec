@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "keys"
+  ],
+  "messages": [
+    "key \"Ab\" does not match @pattern(\"[a-z]+\")"
+  ]
+}

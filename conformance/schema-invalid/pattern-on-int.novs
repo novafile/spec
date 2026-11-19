@@ -1,0 +1,6 @@
+# @pattern applies to strings only (proposal 0004).
+@schema invalid@1.0.0
+@root R
+
+record R:
+  x: int @pattern("[0-9]+")

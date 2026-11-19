@@ -1,0 +1,7 @@
+@schema patterns@1.0.0
+@root R
+
+type Name = string @pattern("[A-Za-z][A-Za-z0-9_-]*")
+
+record R:
+  v: "total-time" | Name
