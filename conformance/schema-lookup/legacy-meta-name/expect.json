@@ -1,0 +1,6 @@
+{
+  "resolved": "<builtin>",
+  "warnings": [
+    "`nova-schema` is now `novafile.dev/meta/schema`; update the @schema line (spec §6.8)"
+  ]
+}

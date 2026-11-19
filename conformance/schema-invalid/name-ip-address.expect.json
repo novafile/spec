@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "invalid schema name \"10.0.0.1/x\" (a local name such as `infrastructure`, or a domain and a path such as `acme.example/billing/invoice`)"
+}

@@ -1,0 +1,4 @@
+{
+  "error": "not-found",
+  "message": "no schema found that can read acme.test/a@1.0.0"
+}
