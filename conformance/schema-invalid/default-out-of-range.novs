@@ -1,0 +1,6 @@
+# A default MUST resolve against its field's type (§6.1).
+@schema invalid@1.0.0
+@root R
+
+record R:
+  b: u8 = 300

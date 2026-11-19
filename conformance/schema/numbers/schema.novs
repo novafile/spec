@@ -7,3 +7,4 @@ record R:
   i?: u8
   d?: decimal
   big?: int
+  m?: map<rational, int>

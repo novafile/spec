@@ -1,0 +1,6 @@
+# Resolving this default would never terminate: each `{}` needs `a` again (§6.1).
+@schema invalid@1.0.0
+@root R
+
+record R:
+  a: R = {}

@@ -1,0 +1,3 @@
+# The smallest exponent and the smallest 128-bit coefficient (§2.3).
+min_exponent: @decimal("1e-2147483648")
+min_coefficient: @decimal("-170141183460469231731687303715884105728")

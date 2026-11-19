@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "m"
+  ],
+  "messages": [
+    "duplicate map key"
+  ]
+}

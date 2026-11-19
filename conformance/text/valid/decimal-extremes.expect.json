@@ -1,0 +1,5 @@
+{
+  "binary": "0d021e6d696e5f636f656666696369656e7405ffffffffffffffffffffffffffffffffffff0300186d696e5f6578706f6e656e740502ffffffff0f",
+  "canonical": "min_coefficient: @decimal(\"-170141183460469231731687303715884105728\")\nmin_exponent: @decimal(\"1e-2147483648\")\n",
+  "revision": "sha256:28a04badcef13f90c241349ee9f2823299186d8538f01e6d22f7e653ea183adf"
+}

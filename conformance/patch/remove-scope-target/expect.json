@@ -1,0 +1,5 @@
+{
+  "error": "op-failed",
+  "message": "op 1 (line 4) `- .`: cannot remove the scope target itself",
+  "op": 1
+}

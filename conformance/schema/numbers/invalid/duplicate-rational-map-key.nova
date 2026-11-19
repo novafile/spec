@@ -1,0 +1,5 @@
+# "1/2" and "2/4" are the same rational, so the map has a duplicate key (§6.3).
+f: 0.0
+m:
+  "1/2": 1
+  "2/4": 2

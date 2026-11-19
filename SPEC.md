@@ -146,7 +146,7 @@ A field that is **absent** and a field that is present with the value `null` are
 
 A `map` maps keys of any kind to values. Keys MUST be unique (by §2.12 equality). Entry order is not part of the value.
 
-A `variant` is a tag — a name matching `[A-Za-z_][A-Za-z0-9_-]*` — and an optional payload value. `!active` and `!failed("disk full")` are variants. A schema's `enum` (§6.1) constrains which tags and payloads are permitted. Variants express both C-style enums (no payload) and tagged unions (payload).
+A `variant` is a tag — a name matching `[A-Za-z_][A-Za-z0-9_-]*` — and an optional payload value. `!active` and `!failed("disk full")` are variants. A value whose tag does not match this pattern is invalid in every representation: parsers and decoders MUST reject it, and encoders and language bindings (§11.3) MUST report an error rather than produce it, for example for a binding-level rename to `at start`. A schema's `enum` (§6.1) constrains which tags and payloads are permitted. Variants express both C-style enums (no payload) and tagged unions (payload).
 
 ### 2.12 Equality and ordering
 
@@ -500,6 +500,7 @@ Decoders MUST reject:
 - element counts that exceed the remaining input;
 - invalid UTF-8;
 - duplicate record keys, set elements or map keys;
+- variant tags that are not identifiers (§2.11), such as the empty string;
 - non-normalized decimals or rationals;
 - out-of-range timestamps or durations;
 - nesting deeper than their limit (at least 64; the reference implementation uses 128).
@@ -615,7 +616,7 @@ record Infrastructure:
 - Definition names start with an uppercase letter. Fields are indented exactly two spaces.
 - A field name is an identifier or a quoted string (§4.6), exactly like a record key in a document (§4.3): `"at start": Formula`, `">="?: (Term, Term)`. A field whose name is not an identifier MUST NOT carry `@key`, because keyed selectors (§7.1) name key fields by identifier. Enum variant names remain identifiers, since variant tags are identifiers in the value model (§2.11).
 - `@root` takes any type from the table below, for example a definition (`@root Infrastructure`) or a list (`@root Service[]`).
-- A field line is `name[?]: type attributes* [= default]`, where the default is a flow value.
+- A field line is `name[?]: type attributes* [= default]`, where the default is a flow value. The default MUST resolve against the field's type, attributes included (§6.3). A schema is invalid if a default does not (`b: u8 = 300`), or if resolving it would not terminate (inside `record R`, the field `a: R = {}` would receive its own default again at every level).
 - A variant is `name[(type)] attributes*`, on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
 - `#` starts a comment when it is at the start of a line or preceded by a space, outside quotes.
 - Before the first definition, a schema MAY contain extension directives whose names begin with `x-`, under the same rule as data documents (§4.2): an implementation that does not understand one MUST ignore it. Any other unknown directive makes the schema invalid. Extension directives are not part of the canonical text (§6.6) or the descriptor (§6.8). Tools that write a schema back after changing it SHOULD keep them. `@x-lint` configures the schema's own lints (Appendix E).
@@ -754,6 +755,8 @@ A union member succeeds only if resolving the value against it reports no issue 
 
 `@pattern` applies to values of kind `string` after resolution. Literals and patterns make union members disjoint where they would otherwise overlap: in `type Term = Variable | Name` with the patterns above, `?x` resolves through `Variable` and `truck` through `Name`, and in `"total-time" | Name` the literal must come first, because `Name` also accepts `total-time`.
 
+Conversions can make distinct inputs equal. The keys of a map and the elements of a set MUST still be unique after resolution (§2.11, §2.12): `"1/2"` and `"2/4"` as `rational` keys, `"1.0"` and `"1.00"` as `decimal` keys, or one instant written with two different offsets as `timestamp` keys, are duplicates, and are reported like a duplicate in the input.
+
 Notably, resolution never converts a float to a rational or integer, a rational to a float, a number to a string, or a string to a number or boolean.
 
 ### 6.4 Validation
@@ -783,8 +786,8 @@ A new schema version is **backward compatible** with an old one if every value v
 | Add a required field without a default | breaking |
 | Remove a field | breaking (old data contains it), unless the record is `@open` |
 | Close an `@open` record | breaking |
-| Widen a type: integer to wider integer, integer to `decimal`/`rational`, `decimal` to `rational`, small integer to `float`, `T` to `T?`, `T` to `any`, wider `@range`/`@len` (with the same `@len` unit) | compatible |
-| Narrow or change a type | breaking |
+| Widen a type: integer to wider integer, integer to `decimal`/`rational`, small integer to `float`, `T` to `T?`, `T` to `any`, wider `@range`/`@len` (with the same `@len` unit) | compatible |
+| Narrow or change a type | breaking. This includes `decimal` to `rational`: a `decimal` field accepts floats such as `1.5` (§6.3), a `rational` field does not |
 | Make an optional field required (without a default) | breaking |
 | Add a variant | compatible (old readers reject the new variant: this is a forward-compatibility concern). In an enum without `@id`, only appending is compatible: a variant inserted before others moves them (below) |
 | Remove a variant, or change its payload incompatibly | breaking |
@@ -825,7 +828,7 @@ The **fingerprint** is the first 16 hexadecimal digits of the revision (§2.13) 
 
 Schema versions are **Semantic Versioning 2.0.0** (<https://semver.org>) versions, and this is enforced, not advisory:
 
-- A named schema MUST declare `@schema name@MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`. The version MUST conform exactly to the SemVer 2.0.0 grammar: no leading zeros, no `v` prefix, all three components present. Schema names consist of lowercase ASCII letters, digits and `-_./`, and start with a letter.
+- A named schema MUST declare `@schema name@MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`. The version MUST conform exactly to the SemVer 2.0.0 grammar: no leading zeros, no `v` prefix, all three components present. Schema names consist of lowercase ASCII letters, digits and `-_./`, start with a letter, and have no empty `/`-separated segment (no `//`, no trailing `/`).
 - A schema without a `@schema` line is **anonymous**. It can validate documents, but it cannot be referenced, and it cannot take part in evolution checks.
 - Version precedence follows SemVer §11. Build metadata is ignored for precedence and compatibility.
 
@@ -1020,7 +1023,7 @@ replicas: 5 -> 8
 Applying a patch `P` to a document `D`:
 
 1. **Base check.** If `P` has a base revision, `revision(D)` MUST match it (prefix match per §2.13). Otherwise the patch fails with a *stale base* conflict.
-2. **Scope.** If `P` has a scope `S`, then `S` MUST be singular and MUST resolve in `D`. Every operation path is interpreted as `S` followed by that path, so operations **cannot address anything outside the scope**. A host MAY additionally bind a scope out of band, for example per tool call; the patch's scope MUST then lie within the bound scope.
+2. **Scope.** If `P` has a scope `S`, then `S` MUST be singular and MUST resolve in `D`. Every operation path is interpreted as `S` followed by that path, so operations **cannot address anything outside the scope**. An operation MUST NOT remove the scope target itself (`-` with an empty path): under a positional scope such as `@scope items[0]`, later operations would otherwise address the sibling that moves into its place. A host MAY additionally bind a scope out of band, for example per tool call; the patch's scope MUST then lie within the bound scope.
 3. **Operations** are applied in order to a working copy. Each operation sees the results of the operations before it.
 4. **Validation.** If the host has a schema for `D`, the result MUST validate (§6.4).
 5. **Atomicity.** If any step fails, the patch is rejected as a whole and `D` is unchanged. The error MUST identify the failing operation (its index and line) and the reason.
@@ -1199,7 +1202,7 @@ Exceeding either limit is an error. Implementations MUST also bound the import d
 
 The nesting-depth bound of §12 applies to templates, but only real nesting counts: the arms of an `@if … @else if … @else` chain are siblings, so a long chain is not a deep one.
 
-**Imports** are resolved by the host. A host MUST NOT fetch from the network unless the user has configured it to. The reference file loader accepts only relative paths beneath the root template's directory and rejects absolute paths, URLs and `..` escapes.
+**Imports** are resolved by the host. A host MUST NOT fetch from the network unless the user has configured it to. The reference file loader accepts only relative paths beneath the root template's directory and rejects absolute paths, URLs and `..` escapes. A file loader MUST resolve symbolic links before that check, so that a link cannot lead outside the root either. Every imported source counts against the byte budget each time it is read, so that repeated imports cannot multiply the work done while the output stays small.
 
 ### 9.6 Overlays
 
@@ -1336,7 +1339,7 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
 - timestamps and durations use the well-known types; decimals, rationals and literal types are strings;
 - optional fields, nullable types and fields with defaults become `optional`.
 
-Values are resolved against the schema before encoding and validated after decoding, so `@len`, `@pattern` and literal types, which Protobuf cannot express, are still enforced. Features Protobuf cannot express are rejected with an error naming the definition and field: tuples, `any`, unions, nested repeated values, nullable collections, non-scalar map keys and so on.
+Values are resolved against the schema before encoding and validated after decoding, so `@len`, `@pattern` and literal types, which Protobuf cannot express, are still enforced. Features Protobuf cannot express are rejected with an error naming the definition and field: tuples, `any`, unions, nested repeated values, nullable collections, collection fields (list, set or map) with a default (proto3 writes an empty collection as nothing, so it would decode as the default), field names that are not Protobuf identifiers (such as quoted names like `"at start"`), non-scalar map keys and so on.
 
 ### 11.3 Language bindings
 
@@ -1538,6 +1541,7 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
     - an informational "this pattern change only widens" note in `nvf schema check`, never affecting the classification;
     - a `[?name ~ "pattern"]` query filter (§7.1) in the same dialect;
     - patterns over `bytes`, which need a byte-oriented dialect that I-Regexp does not define.
+14. **Schema names and catalogs.** Globally unique schema names without a registry (DNS-rooted names such as `acme.example/billing/invoice`, owned through their domain), local catalogs (`nova-catalog.nova`) that map names to files, opt-in fetching with fingerprint and revision pins, the reserved `novafile.dev/` namespace, and the meta-schema renamed to `novafile.dev/meta/schema`, are proposed in [proposals/0005-schema-names-and-catalogs.md](proposals/0005-schema-names-and-catalogs.md).
 
 ---
 
