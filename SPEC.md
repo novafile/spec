@@ -1542,6 +1542,7 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
     - a `[?name ~ "pattern"]` query filter (§7.1) in the same dialect;
     - patterns over `bytes`, which need a byte-oriented dialect that I-Regexp does not define.
 14. **Schema names and catalogs.** Globally unique schema names without a registry (DNS-rooted names such as `acme.example/billing/invoice`, owned through their domain), local catalogs (`nova-catalog.nova`) that map names to files, opt-in fetching with fingerprint and revision pins, the reserved `novafile.dev/` namespace, and the meta-schema renamed to `novafile.dev/meta/schema`, are proposed in [proposals/0005-schema-names-and-catalogs.md](proposals/0005-schema-names-and-catalogs.md).
+15. **Template expressions, functions and a standard library.** Comparisons and arithmetic, list and record comprehensions, non-recursive user functions (`@def`), 40 built-in functions with locale-free, Unicode-pinned semantics (`lower`, `upper`, `trim`, `replace`, `split`, `join`, `slice`, `matches`, `sort`, `merge`, `revision`, `to_json`, …), an exactly counted step budget, and a defined iteration order for records, maps and sets, as template language 0.2, are proposed in [proposals/0006-template-expressions-and-functions.md](proposals/0006-template-expressions-and-functions.md). The language stays deliberately non-Turing-complete.
 
 ---
 
