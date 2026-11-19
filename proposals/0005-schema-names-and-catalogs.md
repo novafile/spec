@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| Status | Draft proposal for discussion. Not normative until merged into SPEC.md. |
+| Status | Merged into SPEC.md (§4.2, §6.7–6.9, §11.2, §12, §13, Appendices C and E) on 2026-11-19. This document keeps the rationale; SPEC.md is normative. |
 | Targets | §4.2 (`@schema`), §6.6–6.8 (names, the meta-schema), §11.2 (JSON Schema `$id`, Protobuf `package`), §12 (security), Appendices C and E, `meta/nova-schema.novs`, conformance suite |
 | New kinds / tags / directives | none. Schema name grammar refined; new meta-schema `novafile.dev/meta/catalog`; meta-schema renamed to `novafile.dev/meta/schema` |
 | Date | 2026-11-19 |

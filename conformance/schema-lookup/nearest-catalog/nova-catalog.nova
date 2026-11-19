@@ -1,0 +1,4 @@
+@schema novafile.dev/meta/catalog@0.1.0
+
+schemas:
+  - path: parent-schemas/

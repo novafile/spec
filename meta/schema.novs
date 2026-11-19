@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
-# Normative source: https://github.com/novafile/spec/blob/main/meta/nova-schema.novs
+# Normative source: https://github.com/novafile/spec/blob/main/meta/schema.novs
 # Copies (e.g. the one embedded in the novafile-schema crate) must stay byte-identical to it.
 # The meta-schema: the shape of schema descriptors (spec §6.8).
 # A schema's descriptor is ordinary NOVA data; this schema validates it,
 # including its own descriptor.
-@schema nova-schema@0.3.2
+@schema novafile.dev/meta/schema@0.3.3
 @root Schema
 
 record Schema:

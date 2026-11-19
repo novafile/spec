@@ -1,0 +1,8 @@
+@schema novafile.dev/meta/catalog@0.1.0
+
+schemas:
+  - path: schemas/
+
+pins:
+  - schema: acme.test/a@1.0.0
+    revision: sha256:0000000000000000000000000000000000000000000000000000000000000000

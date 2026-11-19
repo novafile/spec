@@ -1,0 +1,6 @@
+# Schema names (§6.7): a qualified name needs a path.
+@schema acme.test@1.0.0
+@root R
+
+record R:
+  x: int
