@@ -146,7 +146,7 @@ A field that is **absent** and a field that is present with the value `null` are
 
 A `map` maps keys of any kind to values. Keys MUST be unique (by §2.12 equality). Entry order is not part of the value.
 
-A `variant` is a tag — a name matching `[A-Za-z_][A-Za-z0-9_-]*` — and an optional payload value. `!active` and `!failed("disk full")` are variants. A value whose tag does not match this pattern is invalid in every representation: parsers and decoders MUST reject it, and encoders and language bindings (§11.3) MUST report an error rather than produce it, for example for a binding-level rename to `at start`. A schema's `enum` (§6.1) constrains which tags and payloads are permitted. Variants express both C-style enums (no payload) and tagged unions (payload).
+A `variant` is a tag — a name matching `[A-Za-z_][A-Za-z0-9_-]*` — and an optional payload value. `!active` and `!failed("disk full")` are variants. A value whose tag does not match this pattern is invalid in every representation: parsers and decoders MUST reject it, and implementations MUST NOT produce it: an encoder or language binding (§11.3) that could otherwise write such a tag, for example after a binding-level rename to `at start`, MUST report an error instead. Checking tags where they enter a value, so that an encoder never receives one, satisfies this. A schema's `enum` (§6.1) constrains which tags and payloads are permitted. Variants express both C-style enums (no payload) and tagged unions (payload).
 
 ### 2.12 Equality and ordering
 
@@ -1202,7 +1202,7 @@ Exceeding either limit is an error. Implementations MUST also bound the import d
 
 The nesting-depth bound of §12 applies to templates, but only real nesting counts: the arms of an `@if … @else if … @else` chain are siblings, so a long chain is not a deep one.
 
-**Imports** are resolved by the host. A host MUST NOT fetch from the network unless the user has configured it to. The reference file loader accepts only relative paths beneath the root template's directory and rejects absolute paths, URLs and `..` escapes. A file loader MUST resolve symbolic links before that check, so that a link cannot lead outside the root either. Every imported source counts against the byte budget each time it is read, so that repeated imports cannot multiply the work done while the output stays small.
+**Imports** are resolved by the host. A host MUST NOT fetch from the network unless the user has configured it to. The reference file loader accepts only relative paths beneath the root template's directory and rejects absolute paths, URLs and `..` escapes. A file loader MUST resolve symbolic links before that check, so that a link cannot lead outside the root either. (This does not by itself make the check race-free: a directory replaced by a link between the check and the read is still followed. Closing that needs resolution relative to an open directory handle, such as `openat2` with `RESOLVE_BENEATH`.) Every imported source counts against the byte budget each time it is read, so that repeated imports cannot multiply the work done while the output stays small.
 
 ### 9.6 Overlays
 
