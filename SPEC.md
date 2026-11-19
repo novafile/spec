@@ -1648,7 +1648,7 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
     - `tree:` Merkle revisions and scoped `@expect` preconditions;
     - sidecar patch logs;
     - a TUI browser and editor.
-12. **Quoted variant tags.** Variant tags are identifiers (§2.11), so an enum cannot model keys such as `=`, `>=` or `at start` as variants; a union of single-field records (§6.1) is the current way to express them. Allowing quoted tags (`!"at start"(…)`) in the value model would let such operators become enum variants with `@id`s. The binary encoding (§5.1) and the JSON mapping (§11.1) already carry tags as strings; the text syntax, interpolation (§9.3) and the conventions (Appendix E) would change.
+12. **Quoted variant tags.** Variant tags are identifiers (§2.11), so an enum cannot model keys such as `=`, `>=` or `at start` as variants; a union of single-field records (§6.1) is the current way to express them. Allowing quoted tags (`!"at start"(…)`) in the value model would let such operators become enum variants with `@id`s. The binary encoding (§5.1) and the JSON mapping (§11.1) already carry tags as strings; the text syntax, interpolation (§9.3) and the conventions (Appendix E) would change. They are proposed in [proposals/0007-quoted-variant-tags.md](proposals/0007-quoted-variant-tags.md).
 13. **Beyond string patterns and literals** (§6.1, from [proposals/0004-string-patterns-and-literal-types.md](proposals/0004-string-patterns-and-literal-types.md)):
     - integer, boolean and `null` literal types;
     - tuples with a rest element (`(Name, Term...)`), JSON Schema's `prefixItems` plus `items`;

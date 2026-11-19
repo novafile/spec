@@ -7,7 +7,7 @@ This repository is the language-neutral home of the format:
 | Path | Contents |
 | --- | --- |
 | [`SPEC.md`](SPEC.md) | The specification (draft 0.1) |
-| [`proposals/`](proposals/) | Design proposals that are not normative yet (tensors; streaming, massive documents and a TUI; labels and annotations; template expressions and functions), and the rationale of merged ones (string patterns and literal types; schema names and catalogs) |
+| [`proposals/`](proposals/) | Design proposals that are not normative yet (tensors; streaming, massive documents and a TUI; labels and annotations; template expressions and functions; quoted variant tags), and the rationale of merged ones (string patterns and literal types; schema names and catalogs) |
 | [`meta/schema.novs`](meta/schema.novs) | The meta-schema `novafile.dev/meta/schema@0.3.3`, which describes schema descriptors (§6.8) |
 | [`meta/catalog.novs`](meta/catalog.novs) | The meta-schema `novafile.dev/meta/catalog@0.1.0`, which describes schema catalogs (§6.9) |
 | [`examples/`](examples/) | Example documents, a schema, a patch and a template (CC0-1.0) |
