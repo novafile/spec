@@ -75,7 +75,7 @@ A NOVA **value** is one of the following kinds. The model is a tree: there are n
 
 | Kind | Description |
 | --- | --- |
-| `null` | The absence of a value. |
+| `null` | No value: a field or element that is present but holds nothing. Distinct from an absent field (§2.10). |
 | `bool` | `true` or `false`. |
 | `int` | A mathematical integer. |
 | `float` | An IEEE 754 binary64 number. |
@@ -139,6 +139,8 @@ A `list` is ordered and may contain duplicates. A `tuple` is ordered with a fixe
 ### 2.10 Records
 
 A `record` maps string keys to values. Keys MUST be unique; duplicate keys MUST be rejected by every parser and decoder. **Field order is not part of the value**: two records with the same fields are equal regardless of order. Implementations SHOULD retain the order in which fields were written so that human-oriented output follows the author's order.
+
+A field that is **absent** and a field that is present with the value `null` are different records: `{}` and `{x: null}` are not equal, and every representation (§3), the JSON mapping (§11.1) and patches (§7.4: `remove` versus setting `null`) keep them apart.
 
 ### 2.11 Maps and variants
 
@@ -293,6 +295,14 @@ Every **bare token** — a plain scalar or a flow word (§4.7) — is classified
 3. Anything else → `string`.
 
 There are no other implicit conversions. `yes`, `NO`, `on`, `1.2.3`, `08080` and `2026-11-17T16:00:00Z` are all strings. A schema MAY resolve a string into a richer type (§6.3); without a schema, write a typed literal (§4.8).
+
+> *Rationale (non-normative): why `null` and not `none`.* Languages such as Rust replaced null with an option type, and a keyword like `none` would echo that. NOVA keeps `null` for three reasons:
+>
+> - **`none` is common string data; `null` is not.** Configuration is full of `compression: none`, `auth: none`, `display: none`, and enums with a `none` variant, which a schema resolves from the string `none` (§6.3). A `none` keyword would silently turn all of them into a different kind. That is the class of surprise principle 2 (§1) rules out, the same one that turns `NO` into `false` in YAML.
+> - **Writers type `null`.** JSON, YAML and their tooling, and the people and models that learned from them, spell the empty value `null`. Under a `none` keyword, `x: null` would become the *string* `"null"` without any error.
+> - **One spelling.** Accepting both words would keep the first problem and give every value two spellings, against the canonical form (§4.10).
+>
+> What Rust gained from `Option` is a guarantee at the type level, and NOVA's schemas give the same guarantee: `null` is valid only where a type says so. `T` admits no `null`, and `T?` is the counterpart of `Option<T>` (§6.1). The Rust binding maps `None` to `null` (§11.3). The word stays; what makes it safe is the schema.
 
 ### 4.5 Numbers
 
@@ -622,7 +632,16 @@ record Infrastructure:
 | `T?` | `T` or `null` (nullable) |
 | `Name` | a `record`, `enum` or `type` definition |
 
-`name?:` (an optional field, which may be absent) and `T?` (a nullable type, where the field is present but may be `null`) are independent.
+`name?:` (an optional field, which may be absent) and `T?` (a nullable type, where the field is present but may be `null`) are independent. Together they describe the four shapes a field can take, including the three states JSON can express:
+
+| Declaration | Absent | `null` | A value |
+| --- | --- | --- | --- |
+| `x: T` | no | no | yes |
+| `x?: T` | yes | no | yes |
+| `x: T?` | no | yes | yes |
+| `x?: T?` | yes | yes | yes |
+
+A binding whose native type has only two states (Rust's `Option<T>`) maps to `x?: T?` and chooses one spelling when writing; a binding that must keep all three needs a three-state type.
 
 **Type arguments may carry type attributes**, e.g. `list<u16 @range(1..1024)>` or `map<string @len(1..8), int>`.
 
