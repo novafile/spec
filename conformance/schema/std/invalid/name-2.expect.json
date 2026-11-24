@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "name[0]"
+  ],
+  "messages": [
+    "\"Ada \" does not match @pattern(\"[^\\\\p{Z}\\\\p{Cc}\\\\p{Cf}](.*[^\\\\p{Z}\\\\p{Cc}\\\\p{Cf}])?\")"
+  ]
+}

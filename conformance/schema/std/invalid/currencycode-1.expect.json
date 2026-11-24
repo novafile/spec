@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "currencycode[0]"
+  ],
+  "messages": [
+    "\"EU\" does not match @pattern(\"[A-Z]{3}\")"
+  ]
+}

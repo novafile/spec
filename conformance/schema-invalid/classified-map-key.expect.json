@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "M: a map key cannot have a @personal type, since keys appear in paths"
+}

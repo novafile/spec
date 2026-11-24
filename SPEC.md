@@ -890,10 +890,10 @@ In every case *new* MUST have greater precedence than *old*. A breaking release 
 
 ### 6.8 Schemas as data
 
-Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `novafile.dev/meta/schema@0.3.3` (`meta/schema.novs`). The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
+Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `novafile.dev/meta/schema@0.3.4` (`meta/schema.novs`). The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
 
 ```
-@schema novafile.dev/meta/schema@0.3.3
+@schema novafile.dev/meta/schema@0.3.4
 name: infrastructure
 version: 1.0.0
 root: {kind: !named, ref: Infrastructure}
@@ -922,6 +922,7 @@ defs:
 - A variant has a `name`, and optionally a `payload` type and an `id` (its `@id`), like a field.
 - A type can also carry `nullable`, `range` (exact bounds), `len` (with an optional `unit`) and `pattern` (the I-Regexp text, on `string` only).
 - Boolean flags that are false, and absent optional parts, are omitted.
+- Version 0.3.4 adds the optional parts `imports` (proposal 0008) and `class` on types and definitions (proposal 0009). Writers emit them only for schemas that use those proposals, so every 0.3.3 descriptor is also a 0.3.4 descriptor.
 
 **Conversion:**
 - A schema and its descriptor convert into each other without loss: the fingerprint (§6.6) of the converted schema is unchanged.
@@ -1659,10 +1660,12 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
     - signed schemas, with keys published under `https://{host}/.well-known/…`, since pins check content and not authorship;
     - a version listing (`https://{name}/versions.nova`), so that tools can find the newest version of a name;
     - a registered media type for `.novs` and `.nova` files;
-    - imports between schemas, resolved with the lookup order of §6.9;
+    - imports between schemas, resolved with the lookup order of §6.9 (proposed together with a standard library in [proposals/0008-schema-imports-and-standard-library.md](proposals/0008-schema-imports-and-standard-library.md));
     - a curated `novafile.dev/community/…` namespace for standards whose owners publish no NOVA schemas;
     - a proxy or mirror protocol, for which a catalog `remote` entry with an empty prefix would be the hook.
 15. **Template expressions, functions and a standard library.** Comparisons and arithmetic, list and record comprehensions, non-recursive user functions (`@def`), 40 built-in functions with locale-free, Unicode-pinned semantics (`lower`, `upper`, `trim`, `replace`, `split`, `join`, `slice`, `matches`, `sort`, `merge`, `revision`, `to_json`, …), an exactly counted step budget, and a defined iteration order for records, maps and sets, as template language 0.2, are proposed in [proposals/0006-template-expressions-and-functions.md](proposals/0006-template-expressions-and-functions.md). The language stays deliberately non-Turing-complete.
+16. **Schema imports and a standard library.** `@import name@version[#fingerprint] as alias` directives, resolved with the lookup order of §6.9 and kept with their fingerprints in canonical text, and a bundled, never-fetched schema `novafile.dev/std` of fixed, regular string and number types (`Uuid`, `Uri`, `Email`, `E164`, `Name`, `PortablePath`, the 0003 label conventions, …). Attributes on a reference to an alias would intersect with the alias's own, so `std.Name @len(..200)` narrows the type instead of copying it. A fix to a std type is a MAJOR version of std, so a schema's meaning never changes with the validator. This replaces an earlier `@format(name)` design. Proposed in [proposals/0008-schema-imports-and-standard-library.md](proposals/0008-schema-imports-and-standard-library.md).
+17. **Classified values and redaction.** Schema attributes `@secret` and `@personal` classify values, and every tool that emits values (queries, conversions, diffs, diagnostics, templates, the language server) redacts them by default with a response-only `@redacted` placeholder, with keyed pseudonyms for personal data. Revealing is a user flag or host policy, never an agent parameter. Filters on classified values, classified keys, and revisions over low-entropy secrets are closed as side channels, and declassification is a breaking change. Proposed in [proposals/0009-classified-values-and-redaction.md](proposals/0009-classified-values-and-redaction.md).
 
 ---
 

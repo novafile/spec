@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "uuid[0]"
+  ],
+  "messages": [
+    "\"urn:uuid:0f8fad5b-d9cb-469f-a165-70867728950e\" does not match @pattern(\"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\")"
+  ]
+}
