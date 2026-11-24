@@ -15,8 +15,8 @@ type E164 = string @pattern("[+][1-9][0-9]{1,14}")
 # HTML "valid e-mail address": ASCII only, case preserved. RFC 6531 addresses are out of scope.
 type Email = string @pattern("[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?([.][A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*")
 
-# Trimmed single-line text. Follows the Unicode version of the implementation.
-type Name = string @pattern("[^\\p{Z}\\p{Cc}\\p{Cf}](.*[^\\p{Z}\\p{Cc}\\p{Cf}])?")
+# Trimmed single-line text without control characters. Follows the Unicode version of the implementation.
+type Name = string @pattern("[^\\p{Z}\\p{Cc}\\p{Cf}]([^\\p{Cc}\\p{Zl}\\p{Zp}]*[^\\p{Z}\\p{Cc}\\p{Cf}])?")
 
 # Text with at least one visible character; may span lines. Follows the Unicode version of the implementation.
 type NonBlank = string @pattern("(.|\\n|\\r)*[^\\p{Z}\\p{Cc}\\p{Cf}](.|\\n|\\r)*")

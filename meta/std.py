@@ -200,7 +200,9 @@ TYPES = [
     ("CurrencyCode", "ISO 4217 currency code, by shape only. The ISO list changes, so std does not enumerate it.", pattern("[A-Z]{3}")),
     ("E164", 'ITU-T E.164 telephone number: "+", then 2 to 15 digits, no leading zero. Syntax only.', pattern("[+][1-9][0-9]{1,14}")),
     ("Email", 'HTML "valid e-mail address": ASCII only, case preserved. RFC 6531 addresses are out of scope.', pattern(EMAIL)),
-    ("Name", "Trimmed single-line text. Follows the Unicode version of the implementation.", pattern(f"{VISIBLE}(.*{VISIBLE})?")),
+    # Inside, no control character (C0, C1 and so NEL) and no line or paragraph separator.
+    # Format characters stay allowed: emoji sequences need ZWJ, and right-to-left text needs bidi marks.
+    ("Name", "Trimmed single-line text without control characters. Follows the Unicode version of the implementation.", pattern(f"{VISIBLE}([^\\p{{Cc}}\\p{{Zl}}\\p{{Zp}}]*{VISIBLE})?")),
     ("NonBlank", "Text with at least one visible character; may span lines. Follows the Unicode version of the implementation.", pattern(f"(.|\\n|\\r)*{VISIBLE}(.|\\n|\\r)*")),
     ("Port", "TCP or UDP port number.", "int @range(0..65535)"),
     ("PortablePath", 'Relative path with "/" separators and POSIX portable file names. Windows reserved names (CON, NUL, ...) are not checked.', pattern(f"{PATH_SEGMENT}(/{PATH_SEGMENT})*", "string @len(1..1024, utf8)")),
@@ -236,7 +238,7 @@ VECTORS = {
     "Email": (["ada@example.org", "a.b+tag@sub.example.co", "x@localhost"], ["ada", "@example.org", "ada@", "ada@-x.org", "ad a@example.org", "ada@ex_ample.org"]),
     "E164": (["+4930123456", "+12", "+123456789012345"], ["030123456", "+0123", "+1", "+1234567890123456", "+49 30 123"]),
     "NonBlank": (["a", " a ", "\u200bx", "line\nnext"], ["", " ", "\u00a0\u3000", "\n\t", "\u200b\ufeff"]),
-    "Name": (["Ada", "Ada Lovelace", "\u00c9mile"], ["", " Ada", "Ada ", "Ada\nLovelace", "\u200dAda"]),
+    "Name": (["Ada", "Ada Lovelace", "\u00c9mile"], ["", " Ada", "Ada ", "Ada\nLovelace", "\u200dAda", "Ada\u0085Lovelace", "Ada\u2028Lovelace", "Ada\u2029Lovelace", "Ada\u001bLovelace", "Ada\tLovelace"]),
     "PortablePath": (["a", ".github/workflows/ci.yml", "src/lib.rs", "a_b-c.d"], ["/etc/passwd", "../x", "a//b", "a/./b", "-rf", "C:/x", "a\\b", "a.", "a:b", "a b"]),
     "SemVer": (["1.0.0", "0.0.4", "1.2.3-alpha.1+build.5", "10.20.30-rc.1"], ["1.0", "01.0.0", "1.0.0-01", "v1.0.0", "1.0.0+"]),
     "Sha256Hex": (["0" * 64], ["0" * 63, "A" * 64]),
@@ -267,6 +269,8 @@ def conformance(root: "Path") -> None:
 def qv(v: str) -> str:
     """Return v as a NOVA quoted string."""
     out = v.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\t", "\\t")
+    # Other control characters and line separators may not appear raw in a quoted string.
+    out = "".join(f"\\u{{{ord(c):X}}}" if ord(c) < 0x20 or 0x7F <= ord(c) <= 0x9F or c in "\u2028\u2029" else c for c in out)
     return '"' + out + '"'
 
 
