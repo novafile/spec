@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "@import novafile.dev/std@0.1.0#0000000000000000: fingerprint mismatch: the import pins #0000000000000000, the schema is #765450885889a449"
+}

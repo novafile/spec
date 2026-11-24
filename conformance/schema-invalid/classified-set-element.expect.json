@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "S: a set element cannot have a @secret type, since elements appear in paths"
+}

@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "@personal: the type already has @secret; a type has at most one class"
+}

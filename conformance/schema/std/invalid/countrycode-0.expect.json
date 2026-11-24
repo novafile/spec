@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "countrycode[0]"
+  ],
+  "messages": [
+    "\"de\" does not match @pattern(\"[A-Z]{2}\")"
+  ]
+}

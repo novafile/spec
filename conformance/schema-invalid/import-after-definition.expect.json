@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "@import comes before @root and the first definition"
+}

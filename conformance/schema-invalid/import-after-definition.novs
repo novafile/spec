@@ -1,0 +1,2 @@
+type A = int
+@import novafile.dev/std@0.1.0 as std

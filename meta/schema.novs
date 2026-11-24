@@ -4,7 +4,7 @@
 # The meta-schema: the shape of schema descriptors (spec §6.8).
 # A schema's descriptor is ordinary NOVA data; this schema validates it,
 # including its own descriptor.
-@schema novafile.dev/meta/schema@0.3.3
+@schema novafile.dev/meta/schema@0.3.4
 @root Schema
 
 record Schema:
@@ -12,6 +12,12 @@ record Schema:
   version?: string @id(2)
   root?: Type @id(3)
   defs: list<Def> @id(4)
+  imports?: list<Import> @id(5)
+
+# `@import schema as alias` (proposal 0008). `schema` is `name@version#fingerprint`.
+record Import:
+  alias: string @key @id(1)
+  schema: string @id(2)
 
 # Exactly one of `record`, `enum` and `alias` is present.
 record Def:
@@ -19,6 +25,7 @@ record Def:
   record?: RecordDef @id(2)
   enum?: list<VariantDef> @id(3)
   alias?: Type @id(4)
+  class?: Class @id(5)        # on records and enums (proposal 0009)
 
 record RecordDef:
   open: bool @id(1) = false
@@ -53,8 +60,9 @@ record Type:
   nullable: bool @id(7) = false
   range?: Range @id(8)
   len?: Len @id(9)
-  pattern?: string @id(10)    # an I-Regexp; only on `string`
+  pattern?: string @id(10)    # an I-Regexp; on `string` or a `named` alias of it
   literal?: string @id(11)    # the value of a `literal` type
+  class?: Class @id(12)       # proposal 0009
 
 # Bounds are exact numbers: int, decimal or rational.
 record Range:
@@ -67,3 +75,7 @@ record Len:
   min?: u64 @id(1)
   max?: u64 @id(2)
   unit: LenUnit @id(3) = !scalars
+
+# How readers show a value (proposal 0009): a pseudonym for `personal`, a
+# placeholder for `secret`.
+enum Class = personal | secret

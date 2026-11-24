@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "nonblank[0]"
+  ],
+  "messages": [
+    "\"\" does not match @pattern(\"(.|\\\\n|\\\\r)*[^\\\\p{Z}\\\\p{Cc}\\\\p{Cf}](.|\\\\n|\\\\r)*\")"
+  ]
+}

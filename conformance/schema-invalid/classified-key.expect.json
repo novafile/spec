@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "R.id: a @key field cannot have a @secret type, since keys appear in paths"
+}
