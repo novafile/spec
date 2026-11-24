@@ -168,12 +168,17 @@ This is the subtle one. A redacted response carries `@revision`, the SHA-256 of 
 
 ## 0009.7 Templates and derived values
 
-Templates (§9, and expressions per 0006) are total and value-level, so **taint propagation** is tractable. Today only references and interpolation derive values; the 0006 functions named below do not exist yet, and the rule applies to them when they land.
+Templates (§9, and expressions per 0006) are total and value-level, so **taint propagation** is tractable.
 
 - A value obtained from an imported document through a classified type is classified, with the same class.
-- The result of any expression or built-in function whose arguments include a classified value inherits the strongest class among them. This covers interpolation, `join`, `replace`, `slice`, `to_json`, `revision`, `sha256` and comprehensions over classified elements. There are deliberately no exceptions for "one-way" functions: hashing a low-entropy secret does not protect it (0009.6.5).
+- The result of any operator, interpolation or built-in function whose operands include a classified value, at any depth, inherits the strongest class among them. This covers `join`, `replace`, `slice`, `len`, `to_json`, `revision`, `sha256` and comparisons. There are deliberately no exceptions for "one-way" functions: hashing a low-entropy secret does not protect it (0009.6.5).
+- One exception keeps whole records from being classified because one field is: built-ins that only move values without reading them (`get`, `default`, `keys`, `values`, `concat`, `merge`, `len`) keep each value's own class when no argument is classified as a whole. `get($db, "host", "")` stays in clear while `get($db, "password", "")` is classified.
+- A value missing from a classified container is a classified `null`, not an error, so a template cannot tell which fields a classified record holds or how long a classified list is.
+- An operation that fails on a classified operand reports the operator or function, never the value.
+- A `@def` call passes classified arguments on with their class. Parameter and result types are checked against the clear value, and a failed check does not quote it.
 - Rendering in `redact` mode splices placeholders. Rendering for deployment reveals, and the rendered output is then the user's responsibility. `nvf render` redacts on stdout and reveals when it writes a file (`-o`), unless `--reveal` says otherwise. `--reveal=PATHS` names paths in the *output*.
-- Anything that branches on a classified value is an error in `redact` mode, for the same reason as filters: `@if` conditions that compare a classified value (`@if $x.password == ""`; comparisons with `null` test presence and are allowed), `@for` loops and spreads over classified containers, interpolated record keys, set elements and map keys (uniqueness would compare them), and selectors that compare classified values.
+- Anything that branches on a classified value is an error in `redact` mode, for the same reason as filters: classified conditions and comprehension filters (`@if $x.password == ""`), a classified left operand of `and` or `or` (it decides whether the right one runs), `@for` loops, comprehensions and spreads over classified containers, interpolated record keys, comprehension keys, set elements and map keys (uniqueness would compare them), and selectors that compare classified values.
+- `$x == null` and `$x != null` test presence. They are allowed on a classified value, since presence is not classified, and a field missing from a record counts as absent rather than an error. A presence test *inside* a classified container (`$db.admin.mfa`, `$db.tokens[3]`) is an error.
 
 ## 0009.8 Canonical text, descriptor, evolution
 
