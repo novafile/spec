@@ -619,6 +619,7 @@ record Infrastructure:
 - A field line is `name[?]: type attributes* [= default]`, where the default is a flow value. The default MUST resolve against the field's type, attributes included (§6.3). A schema is invalid if a default does not (`b: u8 = 300`), or if resolving it would not terminate (inside `record R`, the field `a: R = {}` would receive its own default again at every level).
 - A variant is `name[(type)] attributes*`, on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
 - `#` starts a comment when it is at the start of a line or preceded by a space, outside quotes.
+- The comment lines directly above a definition, a field or a variant on its own line, with no blank or other line between, are its **documentation**: their text without `#` and one following space, joined by line breaks. Other comments document nothing, such as a file header followed by a blank line, or a comment after a field on the same line. Tools SHOULD show the documentation (in hovers, generated docs and JSON Schema `description`, §11.2) and SHOULD keep it when they write a schema back. Documentation is not part of the canonical text (§6.6) or the descriptor (§6.8).
 - Before the first definition, a schema MAY contain extension directives whose names begin with `x-`, under the same rule as data documents (§4.2): an implementation that does not understand one MUST ignore it. Any other unknown directive makes the schema invalid. Extension directives are not part of the canonical text (§6.6) or the descriptor (§6.8). Tools that write a schema back after changing it SHOULD keep them. `@x-lint` configures the schema's own lints (Appendix E).
 
 **Types**
@@ -1430,6 +1431,8 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
   - A pattern that is not anchored at both ends is a search, and becomes `@pattern("(.|\n|\r)*(q)(.|\n|\r)*")`, with the corresponding end dropped if only one end is anchored.
   - Anything outside I-Regexp (`\d`, lookahead, backreferences, flags) is reported as not enforced.
   - A string `"const"` becomes a literal. A string `"enum"` becomes an enum when every value is an identifier, and otherwise a union of literals.
+
+Documentation (§6.1) maps to `"description"` on the definition, on the field's property schema, and on the object of a variant with a payload. A `@key` field's description MAY end with a note about the key; reading drops that note. Reading turns any `"description"` of a definition or field back into its documentation.
 
 Schema names (§6.7) map as follows:
 - *Writing:*
