@@ -4,7 +4,7 @@
 # The meta-schema: the shape of schema descriptors (spec §6.8).
 # A schema's descriptor is ordinary NOVA data; this schema validates it,
 # including its own descriptor.
-@schema novafile.dev/meta/schema@0.3.4
+@schema novafile.dev/meta/schema@0.3.5
 @root Schema
 
 record Schema:
@@ -20,7 +20,7 @@ record Import:
   schema: string @id(2)
 
 # Exactly one of `record`, `enum` and `alias` is present.
-record Def:
+record Def @one_of(record, enum, alias):
   name: string @key @id(1)
   record?: RecordDef @id(2)
   enum?: list<VariantDef> @id(3)
@@ -30,6 +30,15 @@ record Def:
 record RecordDef:
   open: bool @id(1) = false
   fields: list<FieldDef> @id(2)
+  rules?: list<RecordRule> @id(3)    # proposal 0010
+
+# `@together`, `@one_of` or `@any_of` (proposal 0010): how many of `fields`
+# must be present.
+record RecordRule:
+  kind: RuleKind @id(1)
+  fields: list<string> @id(2)
+
+enum RuleKind = together | one_of | any_of
 
 record FieldDef:
   name: string @key @id(1)

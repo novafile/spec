@@ -1,0 +1,17 @@
+# Record rules and partial validation (proposal 0010).
+@schema record-rules@1.0.0
+@root Config
+
+record Config:
+  name: string
+  db: Db
+
+# A field counts as present unless it is absent or null.
+record Db @together(user, password) @one_of(url, url_file) @any_of(host, socket):
+  port: u16 = 5432
+  user?: string
+  password?: string
+  url?: string
+  url_file?: string
+  host?: string
+  socket?: string?

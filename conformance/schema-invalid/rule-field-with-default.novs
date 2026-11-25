@@ -1,0 +1,7 @@
+# A field with a default is always present after resolution (proposal 0010).
+@schema invalid@1.0.0
+@root R
+
+record R @one_of(a, b):
+  a?: string
+  b: string = "x"

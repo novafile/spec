@@ -1,0 +1,6 @@
+name: app
+db:
+  url_file: /run/db-url
+  socket: /run/pg.sock
+  user: ada
+  password: pw

@@ -1,0 +1,6 @@
+@schema rules@1.0.0
+@root R
+
+record R @one_of(a, b):
+  a?: string
+  b?: string

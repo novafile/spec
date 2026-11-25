@@ -707,6 +707,11 @@ Literals and enums both fix a set of values, but they resolve differently. Under
 | `@id(n)` | field, enum variant | Stable numeric identity (n ≥ 1) for evolution checks and positional encodings. Unique per record, or per enum. Either every variant of an enum carries `@id` or none does; a schema where only some do is invalid. |
 | `@deprecated` | field | Informational. |
 | `@open` | record (after the name) | Unknown fields are accepted and preserved. Records are **closed** by default. |
+| `@together(a, b, …)` | record (after the name) | All of the named fields are present, or none of them. |
+| `@one_of(a, b, …)` | record (after the name) | Exactly one of the named fields is present. |
+| `@any_of(a, b, …)` | record (after the name) | At least one of the named fields is present. |
+
+**Record rules.** `@together`, `@one_of` and `@any_of` are **record rules**. They follow the record name, and a record MAY carry several of each: `record Db @one_of(url, url_file) @together(user, password):`. A rule names two or more distinct fields of the record, by names without quotes. Each named field MUST be optional (`name?:`) and MUST NOT have a default or `@key`; a schema that breaks this is invalid. A named field counts as **present** when the record has it and its value is not `null`, so `T?` fields and fields written as `null` work alike. Rules are checked after the fields (§6.4, step 6), and a broken rule is reported at the path of the record. The canonical text writes them after `@open` and before a class, in the order written.
 
 **Patterns.** `@pattern` takes one quoted string whose content is an **I-Regexp** (RFC 9485), and only that dialect: the subset of XSD regular expressions that maps mechanically to ECMAScript, PCRE, RE2, Go, Ruby and Rust's `regex`, so a schema means the same thing in every binding. It has no backreferences and no lookaround, so every pattern can be matched in time linear in the input (§12).
 
@@ -769,13 +774,16 @@ Resolving a value against a record type:
 3. A missing optional field stays absent.
 4. Any other missing field is an error.
 5. Unknown fields are errors unless the record is `@open`.
-6. `@range`, `@len`, `@pattern` and `@key` constraints are checked. A pattern violation is reported at the path of the string, and the message SHOULD include the pattern: `services[2].name: "Api_1" does not match @pattern("[a-z0-9]([a-z0-9-]*[a-z0-9])?")`. A map key that violates a constraint is reported at the path of the map.
+6. Record rules (§6.1) are checked: `@together`, `@one_of` and `@any_of`.
+7. `@range`, `@len`, `@pattern` and `@key` constraints are checked. A pattern violation is reported at the path of the string, and the message SHOULD include the pattern: `services[2].name: "Api_1" does not match @pattern("[a-z0-9]([a-z0-9-]*[a-z0-9])?")`. A map key that violates a constraint is reported at the path of the map.
 
 Implementations SHOULD report **all** violations, each with the path (§7.1) of the offending value, rather than stopping at the first.
 
 A value that resolves against no member of a union is **one** issue, at the path of that value. The issue SHOULD name the union and SHOULD include, as detail, the issues of the member that came closest (for example, for a record, the member whose field names match its keys; otherwise the first member whose kind accepts the input). Those member issues are not reported as issues of their own.
 
 **Validate** checks the same rules without producing a resolved value. **Resolve** returns the value with conversions and defaults applied. The revision of a document is computed from the document as stored, not from its resolution.
+
+**Partial validation.** A configuration often comes from layers, such as a file, then environment variables, then command-line flags, each overriding the one below key by key. A single layer is incomplete by design. **Partial** validation and resolution check one layer against the same schema with steps 2, 4 and 6 changed: every field of every record is optional, no default is filled in (a layer's default would override the value of a lower layer), and record rules are not checked. Everything else applies: types and conversions, unknown fields of closed records, `@range`, `@len`, `@pattern`, `@key` and the `@schema` reference. Because no record member of a union fails for a missing field, a union takes the first member that the present fields fit. The merged configuration is then resolved in full, as usual.
 
 ### 6.5 Evolution
 
@@ -787,6 +795,8 @@ A new schema version is **backward compatible** with an old one if every value v
 | Add a required field without a default | breaking |
 | Remove a field | breaking (old data contains it), unless the record is `@open` |
 | Close an `@open` record | breaking |
+| Add a record rule, or change the fields of one | breaking |
+| Remove a record rule | compatible |
 | Widen a type: integer to wider integer, integer to `decimal`/`rational`, small integer to `float`, `T` to `T?`, `T` to `any`, wider `@range`/`@len` (with the same `@len` unit) | compatible |
 | Narrow or change a type | breaking. This includes `decimal` to `rational`: a `decimal` field accepts floats such as `1.5` (§6.3), a `rational` field does not |
 | Make an optional field required (without a default) | breaking |
@@ -891,10 +901,10 @@ In every case *new* MUST have greater precedence than *old*. A breaking release 
 
 ### 6.8 Schemas as data
 
-Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `novafile.dev/meta/schema@0.3.4` (`meta/schema.novs`). The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
+Every schema has a **descriptor**: an ordinary NOVA value described by the meta-schema `novafile.dev/meta/schema@0.3.5` (`meta/schema.novs`). The meta-schema is itself written in the schema language, and its own descriptor validates against it. Descriptors let every data tool work on schemas: queries, conditional patches, diffs, templates, binary frames and the language server.
 
 ```
-@schema novafile.dev/meta/schema@0.3.4
+@schema novafile.dev/meta/schema@0.3.5
 name: infrastructure
 version: 1.0.0
 root: {kind: !named, ref: Infrastructure}
@@ -923,12 +933,14 @@ defs:
 - A variant has a `name`, and optionally a `payload` type and an `id` (its `@id`), like a field.
 - A type can also carry `nullable`, `range` (exact bounds), `len` (with an optional `unit`) and `pattern` (the I-Regexp text, on `string` only).
 - Boolean flags that are false, and absent optional parts, are omitted.
+- A record definition lists its record rules in `rules`, in order, each with a `kind` (`!together`, `!one_of` or `!any_of`) and its `fields`.
 - Version 0.3.4 adds the optional parts `imports` (proposal 0008) and `class` on types and definitions (proposal 0009). Writers emit them only for schemas that use those proposals, so every 0.3.3 descriptor is also a 0.3.4 descriptor.
+- Version 0.3.5 adds the optional part `rules` on records (proposal 0010), and states "exactly one of `record`, `enum` and `alias`" as `@one_of(record, enum, alias)` on `Def`. Every valid 0.3.4 descriptor is also a 0.3.5 descriptor.
 
 **Conversion:**
 - A schema and its descriptor convert into each other without loss: the fingerprint (§6.6) of the converted schema is unchanged.
 - An implementation MUST validate a descriptor against the meta-schema, and then apply every rule that applies to schema text: names, references, alias cycles, `@id` uniqueness and defaults.
-- The meta-schema can't express "exactly one of `record`, `enum`, `alias`"; that rule is enforced when converting a descriptor back to a schema. Likewise a `union` MUST have at least two `items` and carries no `nullable`, `range`, `len` or `pattern`; those belong to its members. `pattern` is present only when `kind` is `string`, and is a valid I-Regexp. `literal` is present if and only if `kind` is `literal`, and such a type carries no `range`, `len` or `pattern`.
+- The meta-schema states "exactly one of `record`, `enum`, `alias`" with `@one_of`. It can't express the following, which are enforced when converting a descriptor back to a schema: a `union` MUST have at least two `items` and carries no `nullable`, `range`, `len` or `pattern`; those belong to its members. `pattern` is present only when `kind` is `string`, and is a valid I-Regexp. `literal` is present if and only if `kind` is `literal`, and such a type carries no `range`, `len` or `pattern`.
 
 **Tooling.** Tools SHOULD accept a descriptor wherever a schema is accepted. The reference CLI also loads `.novs` files as their descriptors for `get`, `diff`, `hash` and `convert`. A patched `.novs` file is written back in the schema language.
 
@@ -1431,6 +1443,8 @@ Adapters for other formats SHOULD follow the same discipline: lossless where the
   - A pattern that is not anchored at both ends is a search, and becomes `@pattern("(.|\n|\r)*(q)(.|\n|\r)*")`, with the corresponding end dropped if only one end is anchored.
   - Anything outside I-Regexp (`\d`, lookahead, backreferences, flags) is reported as not enforced.
   - A string `"const"` becomes a literal. A string `"enum"` becomes an enum when every value is an identifier, and otherwise a union of literals.
+
+Record rules (§6.1) map to an `allOf` entry each: `@together` to `dependentRequired` (each field requires the others), `@one_of` to `oneOf` and `@any_of` to `anyOf` of `{"required": [field]}` per field. JSON Schema counts a `null` property as present, where NOVA counts it as absent. Writers SHOULD also emit `"x-nova-rules"`, a list of `{"kind": "one_of", "fields": [...]}`, which readers use to restore the rules; readers do not turn `dependentRequired`, `oneOf` or `anyOf` back into rules.
 
 Documentation (§6.1) maps to `"description"` on the definition, on the field's property schema, and on the object of a variant with a payload. A `@key` field's description MAY end with a note about the key; reading drops that note. Reading turns any `"description"` of a definition or field back into its documentation.
 

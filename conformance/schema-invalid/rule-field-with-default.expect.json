@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "R @one_of(a, b): field b must be optional (`b?:`), without a default or @key"
+}

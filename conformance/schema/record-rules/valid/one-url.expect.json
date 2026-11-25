@@ -1,0 +1,5 @@
+{
+  "binary": "0d020464620d0308686f73740604646208706f727403f0540675726c061a706f7374677265733a2f2f6462086e616d650606617070",
+  "canonical": "db:\n  host: db\n  port: 5432\n  url: postgres://db\nname: app\n",
+  "revision": "sha256:c5ce964f8cf29c701c36abbd51b33be833eff1c4508c450c3acc74ede8d97066"
+}

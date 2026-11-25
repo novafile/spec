@@ -1,0 +1,5 @@
+{
+  "binary": "0d010464620d0208706f7274039e6608757365720606616461",
+  "canonical": "db:\n  port: 6543\n  user: ada\n",
+  "revision": "sha256:0ecde36841d25f3ad55873e2ec1ac27123a55627b2b6813490856f185d2fd86c"
+}

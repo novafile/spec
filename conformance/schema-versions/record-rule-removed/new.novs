@@ -1,0 +1,6 @@
+@schema rules@1.1.0
+@root R
+
+record R:
+  a?: string
+  b?: string

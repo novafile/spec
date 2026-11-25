@@ -1,0 +1,5 @@
+{
+  "binary": "0d010464620d020675726c061a706f7374677265733a2f2f64621075726c5f66696c6506162f72756e2f64622d75726c",
+  "canonical": "db:\n  url: postgres://db\n  url_file: /run/db-url\n",
+  "revision": "sha256:d258cc382e84da22e5113bb5485376a257ee1dfd05ada6834768f8bdc9533f3a"
+}

@@ -26,7 +26,7 @@ Failure cases contain `"error"`. Whether a case fails is normative; error messag
 | `text/invalid/` | `NAME.nova` — MUST be rejected | `NAME.expect.json`: `{"error": true, …}` |
 | `binary/valid/` | `NAME.bin` — a value encoding (§5.1), possibly non-canonical (back-references, record lists, unsorted records) | as `text/valid` |
 | `binary/invalid/` | `NAME.bin` — MUST be rejected by a decoder | `{"error": true, …}` |
-| `schema/SCHEMA/` | `schema.novs`, plus documents in `valid/` and `invalid/` | valid: the **resolved** value (§6.3, defaults and conversions applied); invalid: `issue_paths` (normative set of paths with issues) and `messages` (informative) |
+| `schema/SCHEMA/` | `schema.novs`, plus documents in `valid/` and `invalid/`, and layers in `partial-valid/` and `partial-invalid/` | valid: the **resolved** value (§6.3, defaults and conversions applied; partial resolution for `partial-valid/`, §6.4); invalid: `issue_paths` (normative set of paths with issues) and `messages` (informative) |
 | `schema-invalid/` | `NAME.novs` — a schema that MUST be rejected | `NAME.expect.json`: `{"error": true, …}` |
 | `schema-names/` | `names.json`: a list of schema names | `expect.json`: an object mapping each name to `qualified`, `local` or `invalid` (§6.7) |
 | `schema-lookup/CASE/` | a directory tree with `nova-catalog.nova`, `.novs` files and `doc.nova`, whose `@schema` reference is looked up without fetching (§6.9) | `expect.json`: `resolved` (the path of the chosen file, relative to the case, or `<builtin>`) and optional `warnings`, or `error`: `conflict`, `pin`, `not-found` |

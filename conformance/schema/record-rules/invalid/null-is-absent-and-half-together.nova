@@ -1,0 +1,5 @@
+name: app
+db:
+  url: "postgres://db"
+  socket: null
+  user: ada

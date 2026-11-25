@@ -1,0 +1,4 @@
+# A file layer: name and the URL come from another layer.
+db:
+  port: 6543
+  user: ada
