@@ -1,0 +1,4 @@
+# Rules are not checked on a layer.
+db:
+  url: "postgres://db"
+  url_file: /run/db-url

@@ -1,0 +1,5 @@
+name: app
+db:
+  url: "postgres://db"
+  url_file: /run/db-url
+  host: db

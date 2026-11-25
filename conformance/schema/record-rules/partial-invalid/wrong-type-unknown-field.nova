@@ -1,0 +1,4 @@
+# Types and closed records are still checked on a layer.
+db:
+  port: x
+  prot: 1

@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "db"
+  ],
+  "messages": [
+    "@one_of(url, url_file): 0 present; expected exactly 1"
+  ]
+}

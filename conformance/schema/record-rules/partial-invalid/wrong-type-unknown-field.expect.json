@@ -1,0 +1,11 @@
+{
+  "error": true,
+  "issue_paths": [
+    "db.port",
+    "db.prot"
+  ],
+  "messages": [
+    "expected u16, found string",
+    "unknown field"
+  ]
+}

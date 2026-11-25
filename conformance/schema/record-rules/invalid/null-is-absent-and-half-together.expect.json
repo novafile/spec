@@ -1,0 +1,11 @@
+{
+  "error": true,
+  "issue_paths": [
+    "db",
+    "db"
+  ],
+  "messages": [
+    "@together(user, password): 1 present (user); expected all or none",
+    "@any_of(host, socket): 0 present; expected at least 1"
+  ]
+}

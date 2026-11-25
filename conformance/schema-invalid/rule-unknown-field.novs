@@ -1,0 +1,7 @@
+# A record rule names declared fields (proposal 0010).
+@schema invalid@1.0.0
+@root R
+
+record R @any_of(a, c):
+  a?: string
+  b?: string
