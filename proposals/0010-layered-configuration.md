@@ -5,7 +5,7 @@
 | Status | Merged into SPEC.md (§6.1, §6.4, §6.5, §6.8, §11.2) on 2026-11-25. This document keeps the rationale; SPEC.md is normative. |
 | Targets | §6.1 (record rules), §6.4 (partial validation), §6.5 (evolution), §6.8 (meta-schema 0.3.5), §11.2 (JSON Schema), conformance suite |
 | New kinds / tags / directives | none. New record attributes `@together`, `@one_of`, `@any_of` |
-| Reference implementation | `novafile-schema` (`Schema::resolve_partial`), `novafile-serde` and `novafile-facet` (`from_str_with_schema_partial`), `nvf validate --partial`, `#[derive(NovaSchema)]` (`together`, `one_of`, `any_of`, `not_null`) |
+| Reference implementation | `novafile-schema` (`Schema::resolve_partial`), `novafile-serde` and `novafile-facet` (`from_str_with_schema_partial`), `nvf validate --partial`, `#[derive(NovaSchema)]` (`together`, `one_of`, `any_of`, `not_null`), `novafile-value` (`Value::merge`), example `novafile-serde/examples/layered.rs` |
 | Date | 2026-11-25 |
 
 ---
@@ -77,7 +77,7 @@ The reference derive adds the container attributes `#[nova(together = "a, b")]`,
 
 ## 0010.8 Alternatives considered
 
-- **A merge helper in the library** that takes the layers as values and merges them in order. Merging is a few lines with `to_value` and record updates, and every application has its own precedence rules (lists replace or append, `null` deletes or not). Left out.
+- **A layer loader in the library** that reads files, environment variables and flags and merges them in order. Every application has its own sources, naming and precedence rules (lists replace or append, `null` deletes or not). Left out. The library provides only `Value::merge`, a deep merge with one fixed rule that covers the common case: records and maps merge recursively, everything else replaces, and `null` overrides without deleting. An application with other rules writes its own; `novafile-serde/examples/layered.rs` shows the whole path, including an environment layer.
 - **Rules as body lines** (`@one_of(a, b)` on its own line inside the record). Rules are about the record, like `@open`, and the head line keeps the field list a plain list. The head line was chosen.
 - **`@xor`, `@requires(a -> b)`.** `@one_of` covers the common exclusive case, and `@together` the common dependency. A general dependency rule can come later without changing these.
 - **A `Partial<T>` type operator.** It would make partial checks a property of the schema text, and a layer would need a second root type. A validator mode keeps one schema and one root.
