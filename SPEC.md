@@ -146,7 +146,7 @@ A field that is **absent** and a field that is present with the value `null` are
 
 A `map` maps keys of any kind to values. Keys MUST be unique (by §2.12 equality). Entry order is not part of the value.
 
-A `variant` is a tag — a name matching `[A-Za-z_][A-Za-z0-9_-]*` — and an optional payload value. `!active` and `!failed("disk full")` are variants. A value whose tag does not match this pattern is invalid in every representation: parsers and decoders MUST reject it, and implementations MUST NOT produce it: an encoder or language binding (§11.3) that could otherwise write such a tag, for example after a binding-level rename to `at start`, MUST report an error instead. Checking tags where they enter a value, so that an encoder never receives one, satisfies this. A schema's `enum` (§6.1) constrains which tags and payloads are permitted. Variants express both C-style enums (no payload) and tagged unions (payload).
+A `variant` is a tag — a non-empty string — and an optional payload value. `!active`, `!failed("disk full")` and `!"at start"(x)` are variants. Tags are compared as strings, without normalization, like record keys. A value with an empty tag is invalid in every representation: parsers and decoders MUST reject it, and implementations MUST NOT produce it: an encoder or language binding (§11.3) that could otherwise write an empty tag MUST report an error instead. Checking tags where they enter a value, so that an encoder never receives one, satisfies this. A schema's `enum` (§6.1) constrains which tags and payloads are permitted. Variants express both C-style enums (no payload) and tagged unions (payload).
 
 ### 2.12 Equality and ordering
 
@@ -352,11 +352,14 @@ Flow values can appear anywhere a value can. Inside brackets, newlines and comme
 @set[a, b]                     set
 @map{1 => one, (1, 2) => pair} map           (keys are any flow value)
 !active  !failed("disk full")  variants      (payload in parentheses)
+!"at start"(x)  !"="             variants      (quoted tag)
 ```
 
 A **flow word** is a bare token in flow context. It ends at whitespace, at any of `, [ ] { } ( ) "`, or at a `:` that is followed by whitespace, a delimiter or the end of input. It MUST NOT begin with a reserved character (§4.4) or with `...`. Flow words are classified as in §4.4; for example `ghcr.io/example/auth:v2` is a single string.
 
 Record keys in flow context are identifiers or quoted strings, followed by `:`.
+
+A variant is `!` followed by its tag and, for a payload, `(` directly after the tag. The tag is an identifier or a quoted string (§4.6), as a key is: `!active`, `!"at start"([at, "?t", depot])`. `!"active"` and `!active` are the same variant. No whitespace may separate `!` from the tag or the tag from `(`.
 
 ### 4.8 Typed literals
 
@@ -424,6 +427,7 @@ Canonical scalar spellings, which all writers SHOULD use:
 | duration | Largest units first (`d h m s`), zero components omitted, `0s` for zero, fraction trimmed. |
 | bytes | Standard base64 with padding. |
 | string | A plain scalar / flow word if that spelling re-parses to the same string; otherwise quoted, with the minimal escapes. |
+| variant tag | Bare if it is an identifier, otherwise quoted as a string is. |
 
 ### 4.11 Text streams
 
@@ -500,7 +504,7 @@ Decoders MUST reject:
 - element counts that exceed the remaining input;
 - invalid UTF-8;
 - duplicate record keys, set elements or map keys;
-- variant tags that are not identifiers (§2.11), such as the empty string;
+- the empty variant tag (§2.11);
 - non-normalized decimals or rationals;
 - out-of-range timestamps or durations;
 - nesting deeper than their limit (at least 64; the reference implementation uses 128).
@@ -614,10 +618,10 @@ record Infrastructure:
 ```
 
 - Definition names start with an uppercase letter. Fields are indented exactly two spaces.
-- A field name is an identifier or a quoted string (§4.6), exactly like a record key in a document (§4.3): `"at start": Formula`, `">="?: (Term, Term)`. A field whose name is not an identifier MUST NOT carry `@key`, because keyed selectors (§7.1) name key fields by identifier. Enum variant names remain identifiers, since variant tags are identifiers in the value model (§2.11).
+- A field name is an identifier or a quoted string (§4.6), exactly like a record key in a document (§4.3): `"at start": Formula`, `">="?: (Term, Term)`. A field whose name is not an identifier MUST NOT carry `@key`, because keyed selectors (§7.1) name key fields by identifier.
 - `@root` takes any type from the table below, for example a definition (`@root Infrastructure`) or a list (`@root Service[]`).
 - A field line is `name[?]: type attributes* [= default]`, where the default is a flow value. The default MUST resolve against the field's type, attributes included (§6.3). A schema is invalid if a default does not (`b: u8 = 300`), or if resolving it would not terminate (inside `record R`, the field `a: R = {}` would receive its own default again at every level).
-- A variant is `name[(type)] attributes*`, on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
+- A variant is `name[(type)] attributes*`, where `name` is an identifier or a quoted string like a field name (`"at start"(Formula)`, `"="((Term, Term))`), on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
 - `#` starts a comment when it is at the start of a line or preceded by a space, outside quotes.
 - The comment lines directly above a definition, a field or a variant on its own line, with no blank or other line between, are its **documentation**: their text without `#` and one following space, joined by line breaks. Other comments document nothing, such as a file header followed by a blank line, or a comment after a field on the same line. Tools SHOULD show the documentation (in hovers, generated docs and JSON Schema `description`, §11.2) and SHOULD keep it when they write a schema back. Documentation is not part of the canonical text (§6.6) or the descriptor (§6.8).
 - Before the first definition, a schema MAY contain extension directives whose names begin with `x-`, under the same rule as data documents (§4.2): an implementation that does not understand one MUST ignore it. Any other unknown directive makes the schema invalid. Extension directives are not part of the canonical text (§6.6) or the descriptor (§6.8). Tools that write a schema back after changing it SHOULD keep them. `@x-lint` configures the schema's own lints (Appendix E).
@@ -690,7 +694,7 @@ type Comparator = "<" | "<=" | "=" | ">=" | ">"
 - Bare words remain type names. `total-time` in type position is a reference to a definition (an invalid one, since definition names are PascalCase); the quotes are what make a literal.
 - Literals are strings only. `int @range(3..3)`, `bool` and `null` cover the other single-value cases.
 
-Literals and enums both fix a set of values, but they resolve differently. Under `enum Agg = sum | max` the input `sum` resolves to the variant `!sum` (§6.3), and tags are identifiers (§2.11). Under `type Agg = "sum" | "max"` it stays the string `sum`, and any string can be a literal: `"#t"`, `">="`, `"at start"`. Use an enum for a closed vocabulary the program itself owns, and literals when the strings belong to an external contract and must survive round trips unchanged.
+Literals and enums both fix a set of values, but they resolve differently. Under `enum Agg = sum | max` the input `sum` resolves to the variant `!sum` (§6.3). Under `type Agg = "sum" | "max"` it stays the string `sum`, and any string can be a literal: `"#t"`, `">="`, `"at start"`. Use an enum for a closed vocabulary the program itself owns, and literals when the strings belong to an external contract and must survive round trips unchanged.
 
 **Type arguments may carry type attributes**, e.g. `list<u16 @range(1..1024)>` or `map<string @len(1..8), int>`.
 
@@ -831,7 +835,7 @@ The **canonical schema text** renders:
 2. `@root`, with its type in long form (`@root list<Service>`);
 3. every definition, sorted by name, with fields in declared order and types in their long form (`list<T>`, not `T[]`).
 
-Field names are written bare when they are identifiers, otherwise as canonical quoted strings (§4.10). Union members keep their declared order and are separated by ` | `; a member that is an alias to a union is not expanded. Type attributes are written in the order `@range`, `@len`, `@pattern`. The argument of `@pattern` and a literal type are written as canonical quoted strings, so the fingerprint changes whenever a pattern's text changes, and not when only its NOVA escaping does (`"[?]"` and `"[\u003F]"` are the same pattern). Extension directives (`@x-…`) are left out.
+Field and variant names are written bare when they are identifiers, otherwise as canonical quoted strings (§4.10). Union members keep their declared order and are separated by ` | `; a member that is an alias to a union is not expanded. Type attributes are written in the order `@range`, `@len`, `@pattern`. The argument of `@pattern` and a literal type are written as canonical quoted strings, so the fingerprint changes whenever a pattern's text changes, and not when only its NOVA escaping does (`"[?]"` and `"[\u003F]"` are the same pattern). Extension directives (`@x-…`) are left out.
 
 The **fingerprint** is the first 16 hexadecimal digits of the revision (§2.13) of the canonical text, taken as a NOVA string value. A full **schema reference with fingerprint** is written `name@version#fingerprint`, for example `infrastructure@1.2.0#8c21a0f3d5e6b7c8`. Fingerprints are unaffected by comments and formatting.
 
@@ -1470,7 +1474,7 @@ Schema names (§6.7) map as follows:
 - optional fields, nullable types and fields with defaults become `optional`;
 - the `package` comes from the schema name and its major version. For a qualified name, the host labels are reversed and each path segment becomes a component: `acme.example/billing/invoice@2.1.0` becomes `example.acme.billing.invoice.v2`. Within a component, every character outside `[A-Za-z0-9_]` becomes `_`, and a component that starts with a digit gets a leading `_`. A local name becomes one component in the same way, followed by `.vMAJOR`.
 
-Values are resolved against the schema before encoding and validated after decoding, so `@len`, `@pattern` and literal types, which Protobuf cannot express, are still enforced. Features Protobuf cannot express are rejected with an error naming the definition and field: tuples, `any`, unions, nested repeated values, nullable collections, collection fields (list, set or map) with a default (proto3 writes an empty collection as nothing, so it would decode as the default), field names that are not Protobuf identifiers (such as quoted names like `"at start"`), non-scalar map keys and so on.
+Values are resolved against the schema before encoding and validated after decoding, so `@len`, `@pattern` and literal types, which Protobuf cannot express, are still enforced. Features Protobuf cannot express are rejected with an error naming the definition and field: tuples, `any`, unions, nested repeated values, nullable collections, collection fields (list, set or map) with a default (proto3 writes an empty collection as nothing, so it would decode as the default), field and variant names that are not Protobuf identifiers (such as quoted names like `"at start"`), non-scalar map keys and so on.
 
 ### 11.3 Language bindings
 
@@ -1615,7 +1619,7 @@ cell        = flow-value
 
 flow-value  = quoted | word | "[" items "]" | "{" fields "}" | "(" tuple ")"
             | "@set[" items "]" | "@map{" (flow-value "=>" flow-value),* "}"
-            | "@" name "(" quoted ")" | "!" name ["(" flow-value ")"]
+            | "@" name "(" quoted ")" | "!" key ["(" flow-value ")"]
             | "$" path                                  ; templates only
 key         = identifier | quoted
 identifier  = ('A'..'Z' | 'a'..'z' | "_") ('A'..'Z' | 'a'..'z' | '0'..'9' | "_" | "-")*
@@ -1666,7 +1670,7 @@ unary       = "not" unary | "(" cond ")" | flow-value [("==" | "!=") flow-value]
     - `tree:` Merkle revisions and scoped `@expect` preconditions;
     - sidecar patch logs;
     - a TUI browser and editor.
-12. **Quoted variant tags.** Variant tags are identifiers (§2.11), so an enum cannot model keys such as `=`, `>=` or `at start` as variants; a union of single-field records (§6.1) is the current way to express them. Allowing quoted tags (`!"at start"(…)`) in the value model would let such operators become enum variants with `@id`s. The binary encoding (§5.1) and the JSON mapping (§11.1) already carry tags as strings; the text syntax, interpolation (§9.3) and the conventions (Appendix E) would change. They are proposed in [proposals/0007-quoted-variant-tags.md](proposals/0007-quoted-variant-tags.md).
+12. **Quoted variant tags.** Resolved: variant tags are non-empty strings (§2.11), written quoted when they are not identifiers (§4.7), so operators such as `=` or `at start` can be enum variants (§6.1). The rationale is in [proposals/0007-quoted-variant-tags.md](proposals/0007-quoted-variant-tags.md).
 13. **Beyond string patterns and literals** (§6.1, from [proposals/0004-string-patterns-and-literal-types.md](proposals/0004-string-patterns-and-literal-types.md)):
     - integer, boolean and `null` literal types;
     - tuples with a rest element (`(Name, Term...)`), JSON Schema's `prefixItems` plus `items`;
@@ -1713,7 +1717,7 @@ Documents that declare `@schema` take their names from the schema, so naming rul
 | `untyped-timestamp` | hint | plain strings that are RFC 3339 timestamps, in documents without a schema | wrap in `@timestamp(…)` |
 | `mixed-list` | hint | lists that mix scalar kinds | — |
 | `compat-loss` | warning | in `@compat F` documents, values that F cannot represent | — |
-| `field-case` / `variant-case` | warning | schema field and variant names; quoted field names are exempt, since they exist for external contracts | — |
+| `field-case` / `variant-case` | warning | schema field and variant names; quoted names are exempt, since they exist for external contracts | — |
 | `union-order` | warning | union members that an earlier member makes unreachable or captures values from, including literals an earlier member accepts (§6.5) | — |
 | `pattern-anchor` | warning | a `@pattern` that starts with `^` or ends with `$`, which I-Regexp matches as literal characters, so `"^[a-z]+$"` only matches strings that begin with `^` | — |
 | `schema-name-version` | warning | the last segment of a schema name looks like a version (`v2`, `2`, `2.1`); versions belong after `@` (§6.7) | — |

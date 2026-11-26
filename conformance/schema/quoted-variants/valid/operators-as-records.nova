@@ -1,0 +1,6 @@
+# Operators written as single-field records and strings, as JSON spells them (§6.3).
+formula:
+  and:
+    - {"at start": [at, "?t", depot]}
+    - {"=": [a, 2]}
+cmp: "<="

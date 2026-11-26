@@ -1,0 +1,5 @@
+{
+  "binary": "0d0206636d700f043c3d0e666f726d756c611006616e640a02101061742073746172740a030604617406043f74060a6465706f7410023d0b020602610304",
+  "canonical": "cmp: !\"<=\"\nformula: !and\n  - !\"at start\"\n    - at\n    - \"?t\"\n    - depot\n  - !\"=\"((a, 2))\n",
+  "revision": "sha256:7e8d59618ab98b91c8823aa1c14da938bbd79312571d0fb6dd08cfa1fab0acde"
+}

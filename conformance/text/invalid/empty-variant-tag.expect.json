@@ -1,0 +1,6 @@
+{
+  "col": 5,
+  "error": true,
+  "line": 1,
+  "message": "a variant tag cannot be empty"
+}

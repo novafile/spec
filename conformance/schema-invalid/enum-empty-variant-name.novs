@@ -1,0 +1,2 @@
+# A variant name is a non-empty string.
+enum E = a | ""

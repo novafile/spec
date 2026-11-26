@@ -1,0 +1,8 @@
+# Variant tags that are not identifiers are quoted (spec §2.11, §4.7).
+at_start: !"at start"([at, "?t", depot])
+eq: !"="(1)
+escaped: !"a\"b"
+quoted_identifier: !"active"
+bare: !active
+block: !"at start"
+  at: [t, depot]
