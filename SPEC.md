@@ -146,7 +146,7 @@ A field that is **absent** and a field that is present with the value `null` are
 
 A `map` maps keys of any kind to values. Keys MUST be unique (by §2.12 equality). Entry order is not part of the value.
 
-A `variant` is a tag — a non-empty string — and an optional payload value. `!active`, `!failed("disk full")` and `!"at start"(x)` are variants. Tags are compared as strings, without normalization, like record keys. A value with an empty tag is invalid in every representation: parsers and decoders MUST reject it, and implementations MUST NOT produce it: an encoder or language binding (§11.3) that could otherwise write an empty tag MUST report an error instead. Checking tags where they enter a value, so that an encoder never receives one, satisfies this. A schema's `enum` (§6.1) constrains which tags and payloads are permitted. Variants express both C-style enums (no payload) and tagged unions (payload).
+A `variant` is a tag — a non-empty string that does not begin with `@` — and an optional payload value. `!active`, `!failed("disk full")` and `!"at start"(x)` are variants. Tags are compared as strings, without normalization, like record keys. Tags beginning with `@` are reserved for markers that implementations create themselves, such as redaction placeholders (proposal 0009), so that no input can forge one. A value with an empty or `@` tag is invalid in every representation: parsers and decoders MUST reject it, and implementations MUST NOT produce it as data: an encoder or language binding (§11.3) that could otherwise write such a tag MUST report an error instead. Checking tags where they enter a value, so that an encoder never receives one, satisfies this. A schema's `enum` (§6.1) constrains which tags and payloads are permitted. Variants express both C-style enums (no payload) and tagged unions (payload).
 
 ### 2.12 Equality and ordering
 
@@ -504,7 +504,7 @@ Decoders MUST reject:
 - element counts that exceed the remaining input;
 - invalid UTF-8;
 - duplicate record keys, set elements or map keys;
-- the empty variant tag (§2.11);
+- an empty variant tag, or one beginning with `@` (§2.11);
 - non-normalized decimals or rationals;
 - out-of-range timestamps or durations;
 - nesting deeper than their limit (at least 64; the reference implementation uses 128).
@@ -621,7 +621,7 @@ record Infrastructure:
 - A field name is an identifier or a quoted string (§4.6), exactly like a record key in a document (§4.3): `"at start": Formula`, `">="?: (Term, Term)`. A field whose name is not an identifier MUST NOT carry `@key`, because keyed selectors (§7.1) name key fields by identifier.
 - `@root` takes any type from the table below, for example a definition (`@root Infrastructure`) or a list (`@root Service[]`).
 - A field line is `name[?]: type attributes* [= default]`, where the default is a flow value. The default MUST resolve against the field's type, attributes included (§6.3). A schema is invalid if a default does not (`b: u8 = 300`), or if resolving it would not terminate (inside `record R`, the field `a: R = {}` would receive its own default again at every level).
-- A variant is `name[(type)] attributes*`, where `name` is an identifier or a quoted string like a field name (`"at start"(Formula)`, `"="((Term, Term))`), on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
+- A variant is `name[(type)] attributes*`, where `name` is an identifier or a quoted string like a field name (`"at start"(Formula)`, `"="((Term, Term))`) but not empty and not beginning with `@` (§2.11), on its own line or separated by `|` in the inline form: `enum Phase = pending @id(1) | done(timestamp) @id(2)`. An attribute after the parentheses belongs to the variant; one inside them belongs to the payload type, as in `failed(u8 @range(1..)) @id(3)`.
 - `#` starts a comment when it is at the start of a line or preceded by a space, outside quotes.
 - The comment lines directly above a definition, a field or a variant on its own line, with no blank or other line between, are its **documentation**: their text without `#` and one following space, joined by line breaks. Other comments document nothing, such as a file header followed by a blank line, or a comment after a field on the same line. Tools SHOULD show the documentation (in hovers, generated docs and JSON Schema `description`, §11.2) and SHOULD keep it when they write a schema back. Documentation is not part of the canonical text (§6.6) or the descriptor (§6.8).
 - Before the first definition, a schema MAY contain extension directives whose names begin with `x-`, under the same rule as data documents (§4.2): an implementation that does not understand one MUST ignore it. Any other unknown directive makes the schema invalid. Extension directives are not part of the canonical text (§6.6) or the descriptor (§6.8). Tools that write a schema back after changing it SHOULD keep them. `@x-lint` configures the schema's own lints (Appendix E).

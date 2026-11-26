@@ -1,0 +1,4 @@
+{
+  "error": true,
+  "message": "invalid variant name: variant tag \"@redacted\" starts with `@`, which is reserved for implementation markers such as @redacted"
+}
