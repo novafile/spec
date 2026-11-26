@@ -1,0 +1,2 @@
+# Variant names starting with @ are reserved for implementation markers (§2.11).
+enum E = a | "@redacted"

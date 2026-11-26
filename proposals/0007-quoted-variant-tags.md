@@ -168,6 +168,7 @@ maps to `enum Op = and(Formula[]) | "="((Term, Term)) | "at start"(Formula)`, wi
 - **Additive.** Every document, schema and binary value that is valid today is still valid, with the same value, canonical text and revision. Only inputs that are rejected today, because of a non-identifier tag, become valid.
 - **Version.** Merged within 0.1, as the additive schema syntax of 0004 and 0010 was. A minor version would have been the textbook choice (§13.1), but while the major version is 0, minor versions must match exactly, so 0.2 readers would have rejected every document and binary frame declaring 0.1. A reader that predates the change rejects a quoted tag as a syntax error rather than misreading it.
 - **It reverts a recent tightening.** §2.11 was just made explicit that non-identifier tags are invalid in every representation, and nova was changed to check tags wherever they enter a value. That change made the rule consistent; this one changes the rule. Implementations keep the single check point and change what it accepts: a non-empty string.
+- **Reserved `@` tags.** Identifier-only tags guaranteed that no input could produce an implementation marker, such as the redaction placeholder `@redacted` (0009) or a template's classification wrapper. Allowing every non-empty string would have let `!"@redacted"` forge one, and an enum variant named `"@redacted"` would have let resolution turn a string into one. Tags beginning with `@` therefore stay invalid in data, the namespace text already uses for typed literals (`@set`, `@float(…)`).
 
 ---
 

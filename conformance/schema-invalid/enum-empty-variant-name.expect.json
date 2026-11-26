@@ -1,4 +1,4 @@
 {
   "error": true,
-  "message": "a variant name cannot be empty"
+  "message": "invalid variant name: variant tag is empty"
 }
