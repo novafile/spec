@@ -1,0 +1,17 @@
+# Quoted variant names (spec §6.1): operators as enum variants.
+@schema quoted-variants@1.0.0
+@root Doc
+
+type Term = string | int
+type Formula = list<Term> | Op
+
+enum Op:
+  and(Formula[])
+  "="((Term, Term))
+  "at start"(Formula)
+
+enum Cmp = "<" | "<=" | "=" | active
+
+record Doc:
+  formula: Formula
+  cmp: Cmp

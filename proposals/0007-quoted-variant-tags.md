@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| Status | Draft proposal for discussion. Not normative until merged into SPEC.md. |
+| Status | Merged into SPEC.md (§2.11, §4.7, §4.10, §5.1, §6.1, §6.6, §11.2, Appendices A, C and E) on 2026-11-26, within language version 0.1. This document keeps the rationale; SPEC.md is normative. |
 | Targets | §2.11 (variants), §4.7 and §4.10 (text syntax, canonical text), §5.1 (decoder rejections), §6.1 (enum syntax), §6.6 (canonical schema text), §11.2 (Protobuf), §11.3 (bindings), Appendices A, C and E, conformance suite |
 | New kinds / tags / directives | none. The set of valid variant tags grows from identifiers to every non-empty string |
 | Depends on | nothing. Resolves the rest of [issue #1](https://github.com/novafile/spec/issues/1) |
@@ -166,7 +166,7 @@ maps to `enum Op = and(Formula[]) | "="((Term, Term)) | "at start"(Formula)`, wi
 ## 0007.11 Compatibility
 
 - **Additive.** Every document, schema and binary value that is valid today is still valid, with the same value, canonical text and revision. Only inputs that are rejected today, because of a non-identifier tag, become valid.
-- **Version.** This is new syntax for the NOVA language, so a minor version (§13.1): 0.2. While the major version is 0, readers accept only their own minor version, so a 0.1 reader rejects a 0.2 document with a quoted tag rather than misreading it.
+- **Version.** Merged within 0.1, as the additive schema syntax of 0004 and 0010 was. A minor version would have been the textbook choice (§13.1), but while the major version is 0, minor versions must match exactly, so 0.2 readers would have rejected every document and binary frame declaring 0.1. A reader that predates the change rejects a quoted tag as a syntax error rather than misreading it.
 - **It reverts a recent tightening.** §2.11 was just made explicit that non-identifier tags are invalid in every representation, and nova was changed to check tags wherever they enter a value. That change made the rule consistent; this one changes the rule. Implementations keep the single check point and change what it accepts: a non-empty string.
 
 ---
@@ -211,9 +211,8 @@ The proposed changes to SPEC.md, in summary:
 - **§11.2** (Protobuf): enums with a variant name that is not an identifier are rejected.
 - **§11.3**: renamed variants map to their tags; only the empty tag is an error.
 - **Appendix A**: `"!" (name | quoted) ["(" flow-value ")"]`.
-- **Appendix C**: item 12 is removed.
+- **Appendix C**: item 12 is marked resolved.
 - **Appendix E**: `variant-case` exempts quoted variant names.
-- **§13.1**: the NOVA language becomes 0.2.
 
 ---
 

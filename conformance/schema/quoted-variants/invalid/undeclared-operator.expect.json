@@ -1,0 +1,9 @@
+{
+  "error": true,
+  "issue_paths": [
+    "formula"
+  ],
+  "messages": [
+    "matches no member of Formula: Op: expected variant (and | \"=\" | \"at start\"), found record"
+  ]
+}
