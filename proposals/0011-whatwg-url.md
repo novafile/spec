@@ -6,7 +6,7 @@
 | Targets | `meta/std.novs` and `meta/std.py` (new type `Url`, std `0.2.0`), 0008.3.3 (std table), 0008.3.8 (JSON Schema, bindings), conformance suite (`schema/std`) |
 | New kinds / tags / directives | none. New std type `novafile.dev/std@0.2.0.Url` |
 | Date | 2026-11-26 |
-| Reference implementation | none yet. The grammar below was checked against the Web Platform Tests URL data and the Rust `url` crate (0011.5) |
+| Reference implementation | `meta/std.py` generates `Url` into `meta/std.novs` (std `0.2.0`; `0.1.0` is frozen as `meta/std-0.1.0.novs`); nova bundles both versions and maps `url::Url` to `std.Url` |
 
 ---
 
@@ -122,7 +122,7 @@ The grammar was written as a Python generator of the pattern, the way `std.py` g
 - **Web Platform Tests.** Every expected `href` in `url/resources/urltestdata.json` (634 serializations) matches.
 - **Reject vectors.** `HTTP://a/`, `http://A/`, `http://a`, `http:foo`, `https://a/b\c`, `http://h:080/`, `http://h:65536/`, `https://a:443/`, `http://a/ b`, `http://a/é` and `http://a/?q#f g` are rejected. `foo://a:80/`, `mailto:x@y`, `file:///C:/x` and `data:text/plain,a b` are accepted.
 - **Ports.** For each default port, the generated port pattern was compared with the intended set for every number from 0 to 69,999, and with `00`, `01` and `080`.
-- **The reference engine.** `nvf validate` accepts the 3,772-character pattern within the schema budget (§12), accepts all 634 serializations and rejects the vectors above.
+- **The reference engine.** `nvf validate` accepts the pattern (3,829 characters as `std.py` writes it, under the reference implementation's 4,096) within the schema budget (§12), accepts all 634 serializations and rejects the vectors above. `std.py --check` checks the length, the vectors, and the port patterns against every number from 0 to 69,999.
 - **Rust `url` crate.** A property test parsed 4,000 generated inputs (special, non-special and opaque schemes; ASCII, Unicode, IPv4 and IPv6 hosts; ports; arbitrary Unicode paths), and every string `url::Url` wrote for them matched.
 
 ## 0011.6 Alternatives considered
@@ -134,7 +134,7 @@ The grammar was written as a Python generator of the pattern, the way `std.py` g
 
 ## 0011.7 Conformance cases
 
-- `schema/std`: accept vectors for `Url` from the WPT `href` values at the pinned commit, and the reject vectors of 0011.5, each with a one-line reason.
+- `schema/std`: accept and reject vectors for `Url`, written for this suite (`VALID_URL` and `INVALID_URL` in `std.py`). The WPT `href` values are a validation source only: they are BSD-licensed, and the suite is CC0.
 - A case in which one value is a `Url` and not a `Uri`, and one the other way round, so that implementations cannot alias the two.
 
 ## 0011.8 Open questions

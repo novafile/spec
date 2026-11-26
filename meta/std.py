@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Generate std.novs, the NOVA standard library of types (proposal 0008).
+"""Generate std.novs, the NOVA standard library of types (proposals 0008 and 0011).
 
 The patterns of Uri and UriReference are built from the RFC 3986 ABNF. Each rule below transcribes one rule of the RFC 3986 ABNF (Appendix A).
+The pattern of Url is built from the URL serializer and the percent-encode
+sets of the WHATWG URL Standard (proposal 0011).
 The output uses only I-Regexp constructs (RFC 9485): plain groups,
 character classes, `|` and bounded quantifiers. Run it with `--check`
 to test the patterns against the vectors at the end of this file.
@@ -9,7 +11,8 @@ to test the patterns against the vectors at the end of this file.
 Usage: std.py [--check | --conformance]
 
 Without an option, it rewrites std.novs next to it. --conformance writes
-the case conformance/schema/std.
+the case conformance/schema/std. Released versions are frozen: std 0.1.0
+is std-0.1.0.novs, which this script does not touch.
 """
 
 import re
@@ -145,6 +148,28 @@ def check() -> int:
             print(f"FAIL {name} {s!r}: expected {'match' if want else 'no match'}")
             failures += 1
     failures += check_regrouping()
+    failures += check_url()
+    return failures
+
+
+def check_url() -> int:
+    """Test Url against its vectors, and the port patterns against every number."""
+    url = re.compile(URL)
+    failures = 0
+    for s, want in [(s, True) for s in VALID_URL] + [(s, False) for s in INVALID_URL]:
+        if (url.fullmatch(s) is not None) != want:
+            print(f"FAIL Url {s!r}: expected {'match' if want else 'no match'}")
+            failures += 1
+    for default in set(DEFAULT_PORTS.values()):
+        p = re.compile(port_except(default))
+        for n in range(0, 70000):
+            if (p.fullmatch(str(n)) is not None) != (n != default and n <= 65535):
+                print(f"FAIL port_except({default}) on {n}")
+                failures += 1
+        failures += sum(1 for z in ("00", "01", "080") if p.fullmatch(z))
+    if len(URL) > 4096:
+        print(f"FAIL Url pattern has {len(URL)} characters, over the 4096 of the reference implementation")
+        failures += 1
     return failures
 
 
@@ -165,7 +190,7 @@ def check_regrouping() -> int:
     return failures
 
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 VISIBLE = r"[^\p{Z}\p{Cc}\p{Cf}]"
 SEMVER_NUM = "(0|[1-9][0-9]*)"
 SEMVER_ID = "(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)"
@@ -182,6 +207,148 @@ URN = (
     "urn:[A-Za-z0-9][A-Za-z0-9-]{0,30}[A-Za-z0-9]:([A-Za-z0-9._~!$&'()*+,;=:@-]|%[0-9A-Fa-f]{2})"
     "([A-Za-z0-9._~!$&'()*+,;=:@/-]|%[0-9A-Fa-f]{2})*"
 )
+
+# WHATWG URL serializations (proposal 0011). A serialization is ASCII: every
+# percent-encode set contains all code points above U+007E. "%" is never encoded.
+PRINTABLE = [chr(c) for c in range(0x21, 0x7F)]
+
+
+def chars(excluded: str, space: bool = False) -> str:
+    """A class of the printable ASCII characters (and space) not in `excluded`."""
+    return char_class(set(([" "] if space else []) + PRINTABLE) - set(excluded))
+
+
+def char_class(cs: set) -> str:
+    """A class of exactly the ASCII characters `cs`, as ranges where possible."""
+    allowed = sorted(cs)
+    out, i = [], 0
+    while i < len(allowed):
+        j = i
+        while j + 1 < len(allowed) and ord(allowed[j + 1]) == ord(allowed[j]) + 1:
+            j += 1
+        esc = lambda c: "\\" + c if c in "\\]^-[" else c
+        out.append(esc(allowed[i]) if j == i else esc(allowed[i]) + ("-" if j > i + 1 else "") + esc(allowed[j]))
+        i = j + 1
+    return "[" + "".join(out) + "]"
+
+
+def number_range(lo: int, hi: int) -> str:
+    """The decimal integers lo..=hi without leading zeros."""
+
+    def split(a: str, b: str) -> list:
+        if len(a) == 1:
+            return [a if a == b else f"[{a}-{b}]"]
+        if a[0] == b[0]:
+            return [a[0] + r for r in split(a[1:], b[1:])]
+        zeros, nines = "0" * (len(a) - 1), "9" * (len(a) - 1)
+        out, tail = [], []
+        if a[1:] != zeros:
+            out += [a[0] + r for r in split(a[1:], nines)]
+            a = str(int(a[0]) + 1) + zeros
+        if b[1:] != nines:
+            tail = [b[0] + r for r in split(zeros, b[1:])]
+            b = str(int(b[0]) - 1) + nines
+        if a[0] <= b[0]:
+            out.append((a[0] if a[0] == b[0] else f"[{a[0]}-{b[0]}]") + "[0-9]" * (len(a) - 1))
+        return out + tail
+
+    alts = []
+    for n in range(len(str(lo)), len(str(hi)) + 1):
+        a, b = max(lo, 10 ** (n - 1) if n > 1 else 0), min(hi, 10**n - 1)
+        if a <= b:
+            alts += split(str(a), str(b))
+    return g(*alts)
+
+
+def port_except(default: int) -> str:
+    """A port 0..=65535 other than the scheme's default, which serializers drop."""
+    return g(number_range(0, default - 1), number_range(default + 1, 65535))
+
+
+def not_special(words: list, first: bool = True) -> str:
+    """Every scheme `[a-z][a-z0-9+.-]*` except `words`; I-Regexp has no lookahead."""
+    letters = [chr(c) for c in range(ord("a"), ord("z") + 1)]
+    rest = letters + [chr(c) for c in range(ord("0"), ord("9") + 1)] + list("+.-")
+    heads = sorted({w[0] for w in words if w})
+    alts = [] if first or "" in words else [""]
+    others = sorted(set(letters if first else rest) - set(heads))
+    if others:
+        alts.append(char_class(set(others)) + char_class(set(rest)) + "*")
+    for c in heads:
+        alts.append(c + not_special([w[1:] for w in words if w and w[0] == c], False))
+    return g(*alts)
+
+
+FORBIDDEN_HOST = " #/:<>?@[\\]^|"
+UPPER = "".join(chr(c) for c in range(ord("A"), ord("Z") + 1))
+url_domain = chars(FORBIDDEN_HOST + "%" + UPPER) + "+"  # after domain-to-ASCII: lowercase, punycode
+url_opaque_host = chars(FORBIDDEN_HOST) + "+"
+url_ipv6 = r"\[[0-9a-f:]+\]"
+url_userinfo_ch = chars(' "#<>?^`{}/:;=@[\\]|')
+url_userinfo = g(f"{url_userinfo_ch}+(:{url_userinfo_ch}+)?", f":{url_userinfo_ch}+") + "@"
+url_segment = chars(' "#<>?^`{}/')  # path percent-encode set
+url_segment_special = chars(' "#<>?^`{}/\\')  # special schemes read "\\" as "/"
+url_query = chars(' "#<>')
+url_query_special = chars(' "#<>\'')
+url_fragment = chars(' "<>`')
+url_port = number_range(0, 65535)
+DEFAULT_PORTS = {"http": 80, "https": 443, "ws": 80, "wss": 443, "ftp": 21}
+url_tail_special = f"([?]{url_query_special}*)?(#{url_fragment}*)?"
+url_tail = f"([?]{url_query}*)?(#{url_fragment}*)?"
+url_scheme = not_special(list(DEFAULT_PORTS) + ["file"])
+URL = "|".join(
+    [
+        f"{scheme}://({url_userinfo})?{g(url_domain, url_ipv6)}(:{port_except(d)})?(/{url_segment_special}*)+{url_tail_special}"
+        for scheme, d in DEFAULT_PORTS.items()
+    ]
+    + [
+        f"file://{g(url_domain, url_ipv6)}?(/{url_segment_special}*)+{url_tail_special}",
+        f"{url_scheme}://(({url_userinfo})?{g(url_opaque_host, url_ipv6)}(:{url_port})?)?(/{url_segment}*)*{url_tail}",
+        f"{url_scheme}:" + g("/", f"/{url_segment}+(/{url_segment}*)*", f"/[.](/{url_segment}*)+") + url_tail,
+        f"{url_scheme}:({chars('/?#', space=True)}{chars('?#', space=True)}*)?{url_tail}",
+    ]
+)
+
+# Vectors: serializations a URL parser writes, and strings it never writes.
+VALID_URL = [
+    "https://example.com/",
+    "https://shop.example/?filter[size]=m|l",
+    "https://a.example/p|q[x]?a`b{c}^#f{|}#g",
+    "https://a.example/%zz",
+    "http://[::1]:8080/a",
+    "http://127.0.0.1/",
+    "https://xn--bcher-kva.example/",
+    "wss://h:8443/x?y#z",
+    "ftp://user:pw@ftp.example/f.txt",
+    "file:///etc/hosts",
+    "file://server/share/x",
+    "mailto:a b@example.com",
+    "data:text/plain,a b",
+    "urn:isbn:0451450523",
+    "foo://h",
+    "foo://H:80/p\\q",
+    "foo:/.//p",
+    "foo:/a/b",
+    "git+ssh://git@example.com/r.git",
+]
+INVALID_URL = [
+    "https://example.com",
+    "HTTPS://example.com/",
+    "https://Example.com/",
+    "https://example.com:443/",
+    "http://example.com:080/",
+    "https://b\u00fccher.example/",
+    "https://a.example/ b",
+    "https://a.example/a\\b",
+    "https://a.example/{",
+    "https://a.example/^",
+    "http:example.com",
+    " https://a.example/",
+    "foo://h:65536/",
+    "1a:x",
+    "",
+]
+
 
 
 def quote(p: str) -> str:
@@ -210,6 +377,7 @@ TYPES = [
     ("Sha256Hex", "SHA-256 digest as 64 lowercase hex digits.", pattern("[0-9a-f]{64}")),
     ("Uri", "RFC 3986 absolute URI (section 3). Not a WHATWG URL: no whitespace stripping, no IDNs in Unicode form.", pattern(URI)),
     ("UriReference", "RFC 3986 URI reference (section 4.1): absolute or relative.", pattern(URI_reference)),
+    ("Url", "WHATWG URL Standard serialization: what a URL parser writes back, ASCII with a lowercase scheme. Neither contains nor is contained in Uri (proposal 0011).", pattern(URL)),
     ("Urn", 'RFC 8141 URN, assigned name only (no r-, q- or f-components). Lowercase "urn:" only.', pattern(URN)),
     ("Uuid", "RFC 9562 UUID in lowercase hex with hyphens. Any version and variant, nil and max included.", pattern("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")),
 ]
@@ -234,6 +402,7 @@ VECTORS = {
              ["0F8FAD5B-D9CB-469F-A165-70867728950E", "{0f8fad5b-d9cb-469f-a165-70867728950e}", "urn:uuid:0f8fad5b-d9cb-469f-a165-70867728950e", "0f8fad5bd9cb469fa16570867728950e"]),
     "Uri": (VALID_URI, INVALID + VALID_REF_ONLY[:4]),
     "UriReference": (VALID_URI + VALID_REF_ONLY, INVALID),
+    "Url": (VALID_URL, INVALID_URL),
     "Urn": (["urn:isbn:0451450523", "urn:ietf:rfc:2648", "urn:example:a123,z456/x%2F"], ["URN:isbn:1", "urn:a:b", "urn:-x:y", "urn:isbn:", "urn:x:%zz"]),
     "Email": (["ada@example.org", "a.b+tag@sub.example.co", "x@localhost"], ["ada", "@example.org", "ada@", "ada@-x.org", "ad a@example.org", "ada@ex_ample.org"]),
     "E164": (["+4930123456", "+12", "+123456789012345"], ["030123456", "+0123", "+1", "+1234567890123456", "+49 30 123"]),
