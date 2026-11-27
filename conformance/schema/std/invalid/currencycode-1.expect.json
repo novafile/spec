@@ -4,6 +4,6 @@
     "currencycode[0]"
   ],
   "messages": [
-    "\"EU\" does not match @pattern(\"[A-Z]{3}\")"
+    "\"EU\" is not a std.CurrencyCode"
   ]
 }

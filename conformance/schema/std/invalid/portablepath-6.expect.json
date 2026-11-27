@@ -4,6 +4,6 @@
     "portablepath[0]"
   ],
   "messages": [
-    "\"a\\\\b\" does not match @pattern(\"[.]?[A-Za-z0-9_]([A-Za-z0-9._-]*[A-Za-z0-9_-])?(/[.]?[A-Za-z0-9_]([A-Za-z0-9._-]*[A-Za-z0-9_-])?)*\")"
+    "\"a\\\\b\" is not a std.PortablePath"
   ]
 }
