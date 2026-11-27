@@ -779,7 +779,7 @@ Resolving a value against a record type:
 4. Any other missing field is an error.
 5. Unknown fields are errors unless the record is `@open`.
 6. Record rules (§6.1) are checked: `@together`, `@one_of` and `@any_of`.
-7. `@range`, `@len`, `@pattern` and `@key` constraints are checked. A pattern violation is reported at the path of the string, and the message SHOULD include the pattern: `services[2].name: "Api_1" does not match @pattern("[a-z0-9]([a-z0-9-]*[a-z0-9])?")`. A map key that violates a constraint is reported at the path of the map.
+7. `@range`, `@len`, `@pattern` and `@key` constraints are checked. A pattern violation is reported at the path of the string. If the pattern is written at the use site, the message SHOULD include it: `services[2].name: "Api_1" does not match @pattern("[a-z0-9]([a-z0-9-]*[a-z0-9])?")`. If it comes from a named type, the message SHOULD name that type instead, since a generated pattern can run to kilobytes: `endpoint: "not a url" is not a std.Url`. A map key that violates a constraint is reported at the path of the map.
 
 Implementations SHOULD report **all** violations, each with the path (§7.1) of the offending value, rather than stopping at the first.
 

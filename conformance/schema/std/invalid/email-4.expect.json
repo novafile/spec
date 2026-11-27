@@ -4,6 +4,6 @@
     "email[0]"
   ],
   "messages": [
-    "\"ad a@example.org\" does not match @pattern(\"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?([.][A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\")"
+    "\"ad a@example.org\" is not a std.Email"
   ]
 }

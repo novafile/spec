@@ -4,6 +4,6 @@
     "uuid[0]"
   ],
   "messages": [
-    "\"0F8FAD5B-D9CB-469F-A165-70867728950E\" does not match @pattern(\"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\")"
+    "\"0F8FAD5B-D9CB-469F-A165-70867728950E\" is not a std.Uuid"
   ]
 }

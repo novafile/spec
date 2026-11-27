@@ -4,6 +4,6 @@
     "countrycode[0]"
   ],
   "messages": [
-    "\"de\" does not match @pattern(\"[A-Z]{2}\")"
+    "\"de\" is not a std.CountryCode"
   ]
 }

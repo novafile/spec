@@ -4,6 +4,6 @@
     "nonblank[0]"
   ],
   "messages": [
-    "\"\\n\\t\" does not match @pattern(\"(.|\\\\n|\\\\r)*[^\\\\p{Z}\\\\p{Cc}\\\\p{Cf}](.|\\\\n|\\\\r)*\")"
+    "\"\\n\\t\" is not a std.NonBlank"
   ]
 }

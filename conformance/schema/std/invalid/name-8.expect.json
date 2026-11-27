@@ -4,6 +4,6 @@
     "name[0]"
   ],
   "messages": [
-    "\"Ada\\u001bLovelace\" does not match @pattern(\"[^\\\\p{Z}\\\\p{Cc}\\\\p{Cf}]([^\\\\p{Cc}\\\\p{Zl}\\\\p{Zp}]*[^\\\\p{Z}\\\\p{Cc}\\\\p{Cf}])?\")"
+    "\"Ada\\u001bLovelace\" is not a std.Name"
   ]
 }
